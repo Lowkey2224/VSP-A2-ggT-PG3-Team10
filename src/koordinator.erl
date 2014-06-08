@@ -43,3 +43,15 @@ init(State) ->
 loop(State) ->
   ok
   .
+
+sendGGTValues(PID)->
+  ok
+.
+
+buildRing(State) ->
+  ok
+.
+
+startProcesses(State) ->
+  ok
+.
