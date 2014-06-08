@@ -17,6 +17,7 @@
 -define(LOGFILE, "ggTLogFile").
 -define(PROCESSNAME, "ggTLogFile").
 
+%% Initialisierung
 init(Mi) ->
 
   Known = global:whereis_name(?PROCESSNAME),
@@ -61,6 +62,16 @@ calculate(State, Number) ->
   end
 .
 
+%% pre_process zustand
+preProcess(State) ->
+  ok
+.
+
+%% Zustand Process
+process(State) ->
+  ok
+.
+
 sendMi(State) ->
   error(not_implemented)
 .
@@ -81,5 +92,13 @@ startVote(State) ->
 
 %% Diese Methode stimmt über die Terminierung ab
 vote(State) ->
+  ok
+.
+
+terminate(State) ->
+  ok
+.
+
+registerWithKoordinator(State) ->
   ok
 .

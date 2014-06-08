@@ -52,12 +52,37 @@ buildRing(State) ->
   ok
 .
 
-
+%% Erzeugt und setzt Mi werte fuer ggtProzesse
 setPMIs(State) ->
   ok
 .
 
-startProcesses(State) ->
+%% Startet die ggtBerechnung
+startCalculation(State) ->
   ok
 .
 
+
+terminate(State) ->
+  ok
+.
+
+%% Die Funktion die den Ready zustant repraesentiert.
+ready(State) ->
+  ok
+.
+
+%% repraesentiert den Register Zustand
+register(State) ->
+  ok
+.
+
+%% bearbeitet eine Terminierungsnachricht eines ggtProzesses
+computeGGTTermination(State) ->
+  ok
+.
+
+%% Informiert die ggtProzesse ueber die Terminierung des koordinators
+kill(State) ->
+  ok
+.

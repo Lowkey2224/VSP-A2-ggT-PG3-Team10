@@ -30,3 +30,7 @@ getConfigValues(State) ->
 startGGTProcesses(NumberOfProcesses) ->
   ok
 .
+
+terminate(State) ->
+  ok
+.
