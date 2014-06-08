@@ -62,4 +62,24 @@ calculate(State, Number) ->
 .
 
 sendMi(State) ->
-  error(not_implemented).
+  error(not_implemented)
+.
+%% Informiert den Koordinator ueber aenderungen von Mi
+briefMi(State) ->
+  ok
+.
+
+%% Informiert den Koordinator dass der Prozess sich terminiert hat
+briefTermination(State) ->
+  ok
+.
+
+%% Startet eine Abstimmung um alle PRozesse zu beenden.
+startVote(State) ->
+  ok
+.
+
+%% Diese Methode stimmt über die Terminierung ab
+vote(State) ->
+  ok
+.

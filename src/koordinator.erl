@@ -52,6 +52,12 @@ buildRing(State) ->
   ok
 .
 
+
+setPMIs(State) ->
+  ok
+.
+
 startProcesses(State) ->
   ok
 .
+
