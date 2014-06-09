@@ -1,5 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @author Loki
+%%% @author Marilena
 %%% @copyright (C) 2014, <COMPANY>
 %%% @doc
 %%%
@@ -8,7 +9,7 @@
 %%%-------------------------------------------------------------------
 -module(koordinator).
 -author("Loki").
-
+-author("Marilena").
 -include("constants.hrl").
 -include("messages.hrl").
 
@@ -38,6 +39,10 @@ init(State) ->
       ok
 
   end
+  case State of
+    register ->
+    sendGGTValues(),
+  end
   .
 
 loop(State) ->
@@ -45,7 +50,20 @@ loop(State) ->
   .
 
 sendGGTValues(PID)->
-  ok
+  receive
+    get_ggt_vals ->
+        {ok, Config} = file:consult("koordinator.cfg"),
+        {ok, Regtime} = werkzeug:get_config_value(rt, Config),
+        {ok, Anz_ggt} = werkzeug:get_config_value(anz_ggt, Config),
+        {ok, Delay} = werkzeug:get_config_value(ttw, Config),
+        {ok, Termtime} = werkzeug:get_config_value(ttt, Config),
+        NewDict = dict:new(),
+        Registertime = dict:append(rt, Regtime, NewDict),
+        Anzahl_ggt = dict:append(anz_ggt, Anz_ggt, NewDict),
+        Delaytime = dict:append(ttw, Delay, NewDict),
+        Terminatetime = dict:append(ttt, Termtime, NewDict),
+        starter ! {ggt_vals, {Registertime, Anzahl_ggt, Delaytime, Terminatetime}},
+  end
 .
 
 buildRing(State) ->
