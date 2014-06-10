@@ -10,7 +10,7 @@
 -author("Loki").
 
 %% API
--export([]).
+-export([init/0]).
 -import(werkzeug,[]).
 -include("constants.hrl").
 -include("messages.hrl").
@@ -18,7 +18,7 @@
 -define(PROCESSNAME, "ggTLogFile").
 
 %% Initialisierung
-init(Mi) ->
+init() ->
 
   Known = global:whereis_name(?PROCESSNAME),
   case Known of
