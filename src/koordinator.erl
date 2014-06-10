@@ -20,8 +20,8 @@
 
 start() ->
 
-  {ok, Config} = file:consult("nameservice.cfg"),
-  {ok, Name} = werkzeug:get_config_value(name, Config),
+  {ok, Config} = file:consult("koordinator.cfg"),
+  {ok, Name} = werkzeug:get_config_value(nameservicename, Config),
   {ok, RegisterTime} = werkzeug:get_config_value(rt, Config),
   {ok, GgtPerStarter} = werkzeug:get_config_value(ggt_per_starter, Config),
   {ok, TimeToWait} = werkzeug:get_config_value(ttw, Config),
@@ -31,7 +31,8 @@ start() ->
   State2 = dict:append(rt, RegisterTime * 1000, State1),
   State3 = dict:append(ggt_per_starter, GgtPerStarter, State2),
   State4 = dict:append(ttw, TimeToWait * 1000, State3),
-  State = dict:append(ttt, TimeToTerminate * 1000, State4),
+  State5 = dict:append(ttw, TimeToWait * 1000, State4),  
+  State = dict:append(startercount, 0, State5),
   PIDggT = erlang:spawn(fun() -> init(State) end),
 %%     TODO use this shit right.
   {ok, PIDggT}
@@ -115,8 +116,9 @@ setPMIs(Clients, PMis, NSName) ->
 .
 
 %% Startet die ggtBerechnung
-startCalculation(State) ->
-  ok
+startCalculation(State,Clients, numberOfCalcs) ->
+  Index = random:uniform(length(Clients)),
+  lists:nth(Index,Clients).
 .
 
 
@@ -131,9 +133,12 @@ ready(State) ->
   Clients = dict:fetch(clients,State),
   NSName = dict:fetch(nsname,State),
   ClientCount = length(Clients),
-  setPMIs(Clients, werkzeug:bestimme_mis(?TARGET, ClientCount), NSName),
-%%   NumberOfCalcs = max(2,),
-
+  receive
+    {calc TARGET} ->
+    setPMIs(Clients, werkzeug:bestimme_mis(TARGET, ClientCount), NSName),
+   NumberOfCalcs = max(2,ClientCount*0,15),
+   startCalculation(State,Clients, NumberOfCalcs)
+  end,  
   ok
 .
 
@@ -147,6 +152,12 @@ register(State) ->
       GGTs = dict:fetch(ggt_per_starter, State),
       PID ! {?GGTVALS_RES, TTW, TTT, GGTs},
       register(State);
+
+      {get_starter_number, PID} ->
+          PID ! {starter_number, Number}
+
+      ok
+      ;
     {?CHECKIN, GgtNAme} ->
 
       register(addClient(State, GgtNAme));
