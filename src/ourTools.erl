@@ -15,7 +15,7 @@
 %% API
 -export([registerWithNameService/2, lookupNamewithNameService/2, unbindOnNameService/2]).
 
-
+%% Name, Nameservice
 registerWithNameService(Name, Nameservice) ->
   Nameservice ! {self(), {?REBIND, Name, node()}},
   receive
@@ -24,7 +24,7 @@ registerWithNameService(Name, Nameservice) ->
       ok
   end
   .
-
+%% Name, Nameservice
 lookupNamewithNameService(Name, Nameservice) ->
   Nameservice ! {self(), {?LOOKUP, Name }},
   receive
@@ -37,6 +37,7 @@ lookupNamewithNameService(Name, Nameservice) ->
   end
 .
 
+%% Name, Nameservice
 unbindOnNameService(Name, Nameservice) ->
   Nameservice ! {self(), {?UNBIND, Name }},
   receive
