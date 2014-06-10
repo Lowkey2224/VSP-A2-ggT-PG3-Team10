@@ -50,26 +50,22 @@ init(State) ->
 
 .
 
-loop(State) ->
-  ok
-.
-
-sendGGTValues(PID) ->
-  receive
-    get_ggt_vals ->
-      {ok, Config} = file:consult("koordinator.cfg"),
-      {ok, Regtime} = werkzeug:get_config_value(rt, Config),
-      {ok, Anz_ggt} = werkzeug:get_config_value(anz_ggt, Config),
-      {ok, Delay} = werkzeug:get_config_value(ttw, Config),
-      {ok, Termtime} = werkzeug:get_config_value(ttt, Config),
-      NewDict = dict:new(),
-      Registertime = dict:append(rt, Regtime, NewDict),
-      Anzahl_ggt = dict:append(anz_ggt, Anz_ggt, NewDict),
-      Delaytime = dict:append(ttw, Delay, NewDict),
-      Terminatetime = dict:append(ttt, Termtime, NewDict),
-      starter ! {ggt_vals, {Registertime, Anzahl_ggt, Delaytime, Terminatetime}},
-  end
-.
+%% sendGGTValues(PID) ->
+%%   receive
+%%     get_ggt_vals ->
+%%       {ok, Config} = file:consult("koordinator.cfg"),
+%%       {ok, Regtime} = werkzeug:get_config_value(rt, Config),
+%%       {ok, Anz_ggt} = werkzeug:get_config_value(anz_ggt, Config),
+%%       {ok, Delay} = werkzeug:get_config_value(ttw, Config),
+%%       {ok, Termtime} = werkzeug:get_config_value(ttt, Config),
+%%       NewDict = dict:new(),
+%%       Registertime = dict:append(rt, Regtime, NewDict),
+%%       Anzahl_ggt = dict:append(anz_ggt, Anz_ggt, NewDict),
+%%       Delaytime = dict:append(ttw, Delay, NewDict),
+%%       Terminatetime = dict:append(ttt, Termtime, NewDict),
+%%       starter ! {ggt_vals, {Registertime, Anzahl_ggt, Delaytime, Terminatetime}},
+%%   end
+%% .
 
 buildRing(State) ->
   Clients = dict:fetch(clients, State),
@@ -80,12 +76,14 @@ buildRing(State) ->
   Dict = dict:append(Second, StateTwo,dict:append(First, StateOne, dict:new())),
 
   Paired = buildRing(Dict, Rest,{First,Second}, First),
-  sendNeighbours(Paired),
+  NSName = dict:fetch(nsname,State),
+  sendNeighbours(Paired,NSName),
   ready(State)
 .
 
-sendNeighbours(Paired) ->
-  dict:map(fun(Key, {L,R}) -> Key !  {?NEIGHBOURS, L, R}, ok end, Paired)
+sendNeighbours(Paired, NSName) ->
+
+  dict:map(fun(Key, {L,R}) -> {ok, PID} = ourTools:lookupNamewithNameService(Key,NSName), PID !  {?NEIGHBOURS, L, R}, ok end, Paired)
 .
 
 %% If the Last Element was the last Element in the List.
@@ -105,9 +103,15 @@ buildRing(Paired, Clients, Last, First) ->
 .
 
 %% Erzeugt und setzt Mi werte fuer ggtProzesse
-setPMIs(Clients, PMis) ->
-
-  ok
+setPMIs([], [], NSName) ->
+  ok;
+setPMIs(Clients, PMis, NSName) ->
+  [Client|ClientRest] = Clients,
+  [Mi|Rest] = PMis,
+%%   TODO auf nok testen
+  {ok, ClientPID} = ourTools:lookupNamewithNameService(Client, NSName),
+  ClientPID ! {?SETPMI, Mi},
+  setPMIs(ClientRest, Rest, NSName)
 .
 
 %% Startet die ggtBerechnung
@@ -125,8 +129,9 @@ terminate(State) ->
 
 ready(State) ->
   Clients = dict:fetch(clients,State),
+  NSName = dict:fetch(nsname,State),
   ClientCount = length(Clients),
-  setPMIs(Clients, werkzeug:bestimme_mis(?TARGET, ClientCount)),
+  setPMIs(Clients, werkzeug:bestimme_mis(?TARGET, ClientCount), NSName),
 %%   NumberOfCalcs = max(2,),
 
   ok
