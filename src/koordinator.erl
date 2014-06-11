@@ -70,7 +70,7 @@ buildRing(State) ->
   StateTwo = {First, nok},
   Dict = dict:append(Second, StateTwo, dict:append(First, StateOne, dict:new())),
 
-  Paired = buildRing(Dict, Rest, {First, Second}, First),
+  Paired = buildRing(Dict, Rest, Second, First),
   [NSName|_] = dict:fetch(nsname, State),
   sendNeighbours(Paired, NSName),
   tools:log(?MYNAME, "~p: Wechselt in Ready State\n", [werkzeug:timeMilliSecond()]),
@@ -87,7 +87,6 @@ buildRing(Paired, [], Last, First) ->
 ;
 
 buildRing(Paired, Clients, Last, First) ->
-  tools:log(?MYNAME, "~p: Paired: ~p.\n", [werkzeug:timeMilliSecond(), Paired]),
   [{LeftLast, nok}|_] = dict:fetch(Last, Paired),
   [Actual | Rest] = Clients,
   TmpPaired = dict:erase(Last, Paired),
@@ -104,6 +103,7 @@ setPMIs(Clients, PMis, NSName) ->
   [Mi | Rest] = PMis,
 %%   TODO auf nok testen
   ClientPID = ourTools:lookupNamewithNameService(Client, NSName),
+tools:log(?MYNAME, "~p: Sende Mi ~p and ~p\n", [werkzeug:timeMilliSecond(), Mi, Client]),
   ClientPID ! {?SETPMI, Mi},
   setPMIs(ClientRest, Rest, NSName)
 .

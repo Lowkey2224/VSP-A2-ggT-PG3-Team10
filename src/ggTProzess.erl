@@ -26,7 +26,7 @@ start() ->
           dict:append(name, Name,
             dict:append(ttt, TTT,
               dict:append(ttw, TTW, dict:new()))))),
-      tools:log(Name, "~p ggtProzess erfolgreich gestartet mit Namen: ~s", [werkzeug:timeMilliSecond(), Name]),
+      tools:log(Name, "~p ggtProzess erfolgreich gestartet mit Namen: ~s\n", [werkzeug:timeMilliSecond(), Name]),
       init(State)
   end
 .
