@@ -28,8 +28,8 @@ start() ->
   {ok, Koordinator_name} = werkzeug:get_config_value(koordinatorname, Config),
   {ok, Praktikumsgruppe} = werkzeug:get_config_value(nr_praktikumsgruppe, Config),
   {ok, Teamnummer} = werkzeug:get_config_value(nr_team, Config),
-net_adm:ping(NS),
-NSPID = global:whereis_name(NS),
+  net_adm:ping(NS),
+  NSPID = global:whereis_name(NS),
   MyDict = dict:new(),
   MyDict2 = dict:append(nameservice, NSPID, MyDict),
   MyDict3 = dict:append(koordinatorname, Koordinator_name, MyDict2),
@@ -40,8 +40,9 @@ NSPID = global:whereis_name(NS),
 
 getConfigValues(State) ->
 
-  Koordinator = dict:fetch(koordinatorname, State),
-  KoordinatorPID = ourTools:lookupNamewithNameService(Koordinator, dict:fetch(nameservice, State)),
+  [Koordinator|_] = dict:fetch(koordinatorname, State),
+[NS|_]=dict:fetch(nameservice, State),
+  KoordinatorPID = ourTools:lookupNamewithNameService(Koordinator, NS),
   KoordinatorPID ! {?GGTVALS, self()},
   receive
     {?GGTVALS_RES, TTW, TTT, GGTs} ->
@@ -64,14 +65,14 @@ startGGTProcesses(0, State) ->
 
 startGGTProcesses(NumberOfProcesses, State) ->
   PID = erlang:spawn(fun() -> ggTProzess:start() end),
-  TTW = dict:fetch(ttw, State),
-  TTT = dict:fetch(ttt, State),
-  Praktikumsgruppe = dict:fetch(nr_praktikumsgruppe, State),
-  TEAM = dict:fetch(nr_team, State),
-  Starternumber = dict:fetch(starter_number, State),
+  [TTW|_] = dict:fetch(ttw, State),
+  [TTT|_] = dict:fetch(ttt, State),
+  [Praktikumsgruppe|_] = dict:fetch(nr_praktikumsgruppe, State),
+  [TEAM|_] = dict:fetch(nr_team, State),
+  [Starternumber|_] = dict:fetch(starter_number, State),
   Startnummer = Praktikumsgruppe + TEAM + NumberOfProcesses + "_" + Starternumber,
-  Nameservice = dict:fetch(nameservice, State),
-  Koordinator = dict:fetch(koordinatorname, State),
+  [Nameservice|_] = dict:fetch(nameservice, State),
+  [Koordinator|_] = dict:fetch(koordinatorname, State),
 
   PID ! {TTW, TTT, Startnummer, Nameservice, Koordinator},
   startGGTProcesses(NumberOfProcesses - 1, State)
