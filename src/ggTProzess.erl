@@ -10,29 +10,36 @@
 -author("Loki").
 
 %% API
--export([init/0]).
+-export([start/0]).
 -import(werkzeug,[]).
 -include("constants.hrl").
 -include("messages.hrl").
--define(LOGFILE, "ggTLogFile").
--define(PROCESSNAME, "ggTLogFile").
+
+
+start() ->
+  receive
+    {TTW, TTT, Name, Nameservice, Koordinator} ->
+      State = dict:append(koordinator,Koordinator,
+      dict:append(nsname,Nameservice,
+      dict:append(name,Name,
+      dict:append(ttt,TTT,
+      dict:append(ttw,TTW, dict:new()))))),
+      tools:log(Name, "~p ggtProzess erfolgreich gestartet mit Namen: ~s",[werkzeug:timeMilliSecond(), Name]),
+      init(State)
+  end
+.
 
 %% Initialisierung
-init() ->
-
-  Known = global:whereis_name(?PROCESSNAME),
-  case Known of
-    undefined ->
-      MyDict = dict:new(),
-      State = dict:append(mi, Mi, MyDict),
-      PIDggT = erlang:spawn(fun() -> loop(State) end),
-      global:register_name(?PROCESSNAME, PIDggT),
-
-
-      werkzeug:logging(?LOGFILE, io_lib:format("~p Client service erfolgreich gestartet mit PID: ~p\n", [werkzeug:timeMilliSecond(), PIDggT]));
-    _NotUndef -> {ok, ?PROCESSNAME}
-  end,
-  {ok, ?PROCESSNAME}
+init(State) ->
+  NS = dict:fetch(nsname, State),
+  Name = dict:fetch(name, State),
+  ourTools:registerWithNameService(Name,NS),
+  registerWithKoordinator(State),
+  receive
+    {?SETPMI, Mi} ->
+      NewState = dict:append(mi, Mi, State),
+      preProcess(NewState)
+  end
 .
 
 loop(State) ->
