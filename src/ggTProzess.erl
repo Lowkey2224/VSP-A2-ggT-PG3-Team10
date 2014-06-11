@@ -104,7 +104,8 @@ process(State) ->
 .
 %% TODO
 computeWhatsOn(State, PID) ->
-  error(not_implemented).
+  error(not_implemented),
+  State.
 
 sendMi(State) ->
   L = dict:fetch(left, State),

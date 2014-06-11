@@ -24,12 +24,14 @@
 start() ->
 
   {ok, Config} = file:consult("ggT.cfg"),
-  {ok, Node} = werkzeug:get_config_value(erl_node, Config),
+  {ok, NS} = werkzeug:get_config_value(nameservicename, Config),
   {ok, Koordinator_name} = werkzeug:get_config_value(koordinatorname, Config),
   {ok, Praktikumsgruppe} = werkzeug:get_config_value(nr_praktikumsgruppe, Config),
   {ok, Teamnummer} = werkzeug:get_config_value(nr_team, Config),
+net_adm:ping(NS),
+NSPID = global:whereis_name(NS),
   MyDict = dict:new(),
-  MyDict2 = dict:append(nameservice, Node, MyDict),
+  MyDict2 = dict:append(nameservice, NSPID, MyDict),
   MyDict3 = dict:append(koordinatorname, Koordinator_name, MyDict2),
   MyDict4 = dict:append(nr_praktikumsgr, Praktikumsgruppe, MyDict3),
   MyDict5 = dict:append(nr_team, Teamnummer, MyDict4),
