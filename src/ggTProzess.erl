@@ -42,6 +42,7 @@ init(State) ->
     {?NEIGHBOURS, L, R} ->
       NewState = dict:append(left, L,
         dict:append(right, R, State)),
+      tools:log(Name, "~p: ~p hat Linken Nachbarn ~p und rechten Nachbarn ~p\n", [werkzeug:timeMilliSecond(), Name, L,R]),
       preProcess(NewState)
   end
 .
@@ -53,12 +54,16 @@ calculate(State, Number) ->
   [Mi|_] = dict:fetch(mi, State),
   [TTW|_] = dict:fetch(ttw, State),
   [Timer|_] = dict:fetch(timer, State),
+[Name|_] = dict:fetch(name, State),
   StateWithoutTimer = dict:erase(timer, State),
-  {ok, cancel} = timer:cancel(Timer),
+% TODO Fehler hier
+  Val = timer:cancel(Timer),
+  tools:log(Name, "~p: Timer ~p and cancel Result ~p\n", [werkzeug:timeMilliSecond(), Timer, Val]),
   timer:sleep(TTW),
   case Number < Mi of
     true ->
       NewMi = ((Mi - 1) rem Number) + 1,
+      tools:log(Name, "~p: ~p hat neuen Wert Mi ~p\n", [werkzeug:timeMilliSecond(), Name, NewMi]),
       TempState = dict:store(mi, NewMi, dict:erase(mi, StateWithoutTimer)),
       NewState = sendMi(TempState),
       createTimer(NewState);
@@ -89,11 +94,13 @@ preProcess(State) ->
 
 %% Zustand Process
 process(State) ->
+[Name|_} =dict:fetch(name, State),
   receive
     {?SEND, Y} ->
       TmpState = calculate(State, Y),
       Tmp2 = dict:erase(votetime, TmpState),
       NewState = dict:append(votetime, werkzeug:timeMilliSecond(), Tmp2),
+      tools:log(Name, "~p: Timer ~p and cancel Result ~p\n", [werkzeug:timeMilliSecond(), Timer, Val]),
       process(NewState);
     {?VOTE, Name} ->
       NewState = vote(State, Name),
