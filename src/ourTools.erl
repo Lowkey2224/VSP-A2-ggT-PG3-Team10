@@ -1,5 +1,7 @@
+
 %%%-------------------------------------------------------------------
 %%% @author Loki
+%%% @author Marilena
 %%% @copyright (C) 2014, <COMPANY>
 %%% @doc
 %%%
@@ -8,7 +10,7 @@
 %%%-------------------------------------------------------------------
 -module(ourTools).
 -author("Loki").
-
+-author("Marilena").
 -include("constants.hrl").
 -include("messages.hrl").
 
@@ -53,4 +55,5 @@ PID = global:whereis_name(Nameservice),
       werkzeug:logging(logfile, io_lib:format("Service ~p wurde entfernt in: ~p\n", [Name, PID])),
       {ok, PID}
   end
+
 .
