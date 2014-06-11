@@ -1,5 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @author Loki
+%%% @author Marilena
 %%% @copyright (C) 2014, <COMPANY>
 %%% @doc
 %%%
@@ -8,6 +9,7 @@
 %%%-------------------------------------------------------------------
 -module(ggTProzess).
 -author("Loki").
+-author("Marilena").
 
 %% API
 -export([start/0]).

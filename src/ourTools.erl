@@ -1,5 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @author Loki
+%%% @author Marilena
 %%% @copyright (C) 2014, <COMPANY>
 %%% @doc
 %%%
@@ -8,6 +9,7 @@
 %%%-------------------------------------------------------------------
 -module(ourTools).
 -author("Loki").
+-author("Marilena").
 
 -include("constants.hrl").
 -include("messages.hrl").
