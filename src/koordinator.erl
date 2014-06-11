@@ -20,13 +20,15 @@
 start() ->
 
   {ok, Config} = file:consult("koordinator.cfg"),
-  {ok, Name} = werkzeug:get_config_value(nameservicename, Config),
+  {ok, Nameservice} = werkzeug:get_config_value(nameservicename, Config),
   {ok, RegisterTime} = werkzeug:get_config_value(rt, Config),
   {ok, GgtPerStarter} = werkzeug:get_config_value(ggt_per_starter, Config),
   {ok, TimeToWait} = werkzeug:get_config_value(ttw, Config),
   {ok, TimeToTerminate} = werkzeug:get_config_value(ttt, Config),
   MyDict = dict:new(),
-  State1 = dict:append(nsname, Name, MyDict),
+  net_adm:ping(Nameservice),
+  NSPID = global:whereis_name(Nameservice),
+  State1 = dict:append(nsname, NSPID, MyDict),
   State2 = dict:append(rt, RegisterTime * 1000, State1),
   State3 = dict:append(ggt_per_starter, GgtPerStarter, State2),
   State4 = dict:append(ttw, TimeToWait * 1000, State3),
