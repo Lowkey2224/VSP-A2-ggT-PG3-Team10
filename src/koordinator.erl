@@ -249,7 +249,7 @@ computeGGTTermination(State, GgtName, Mi, Time, PID) ->
 kill(State) ->
   GgtList = dict:fetch(State, clients),
   Ns = dict:fetch(nsname, clients),
-  tools:log(koordinator, "~p: Sende Kill an alle GGT PRozesse\n", [werkzeug:timeMilliSecond(), GgtName, Mi]),
+  tools:log(koordinator, "~p: Sende Kill an alle GGT PRozesse\n", [werkzeug:timeMilliSecond()]),
   stopAllGGTs(GgtList, Ns),
   ourTools:unbindOnNameService(koordinator, Ns),
   ok
