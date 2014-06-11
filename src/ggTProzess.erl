@@ -36,55 +36,85 @@ init(State) ->
   ourTools:registerWithNameService(Name,NS),
   registerWithKoordinator(State),
   receive
-    {?SETPMI, Mi} ->
-      NewState = dict:append(mi, Mi, State),
+    {?NEIGHBOURS, L, R} ->
+      NewState = dict:append(left, L,
+      dict:append(right, R, State)),
       preProcess(NewState)
   end
 .
 
-loop(State) ->
-  receive
-    kill -> kill();
-    {calculate, Number} ->
-      NewState = calculate(State, Number),
-      loop(NewState)
-  end
-.
+
 
 
 kill() ->
-  global:unregister_name(?PROCESSNAME),
+
   ok.
 
 
 calculate(State, Number) ->
   Mi = dict:fetch(mi, State),
+  TTW = dict:fetch(ttw, State),
+  Timer = dict:fetch(timer, State),
+  NewState2 = dict:erase(timer, State),
+  {ok, cancel} = timer:cancel(Timer),
+  timer:sleep(TTW),
   case Number < Mi of
     true ->
       NewMi = ((Mi - 1) rem Number) + 1,
-      TempState = dict:store(mi, NewMi, dict:erase(mi, State)),
-      NewState = sendMi(TempState);
+      TempState = dict:store(mi, NewMi, dict:erase(mi, NewState2)),
+      NewState = sendMi(TempState),
+    PID = ourTools:lookupNamewithNameService(dict:fetch(left, NewState), dict:fetch(nsname, NewState)),
+     MyPid = self(),
+    NewTimer = timer:send_after(dict:fetch(ttt, NewState), {?VOTE, MyPid}, PID),
+    RealState = dict:append(timer, NewTimer, NewState);
     _Else ->
-      NewState = State
+      NewState = NewState2,
+      PID = ourTools:lookupNamewithNameService(dict:fetch(left, NewState), dict:fetch(nsname, NewState)),
+      MyPid = self(),
+      NewTimer = timer:send_after(dict:fetch(ttt, NewState), {?VOTE, MyPid}, PID),
+      RealState = dict:append(timer, NewTimer, NewState)
   end
+
 .
 
 %% pre_process zustand
 preProcess(State) ->
-  ok
+  receive
+    {?SETPMI, Mi} ->
+      NewState = dict:append(mi, Mi,State),
+      process(NewState)
+  end
 .
 
 %% Zustand Process
 process(State) ->
-  ok
+  receive
+    {send, Y} ->
+      NewState = calculate(State, Y)
+  end
 .
 
 sendMi(State) ->
-  error(not_implemented)
+  L = dict:fetch(left, State),
+  R = dict:fetch(right, State),
+  Mi = dict:fetch(mi, State),
+  NS = dict:fetch(nsname, State),
+  LPID = ourTools:lookupNamewithNameService(L,NS),
+  RPID = ourTools:lookupNamewithNameService(R,NS),
+  LPID ! {?SEND, Mi},
+  RPID ! {?SEND, Mi},
+  briefMi(State)
+
 .
 %% Informiert den Koordinator ueber aenderungen von Mi
 briefMi(State) ->
-  ok
+  Koord = dict:fetch(koordinator, State),
+  Mi = dict:fetch(mi, State),
+  Name = dict:fetch(name, State),
+  NS = dict:fetch(nsname, State),
+  PID = ourTools:lookupNamewithNameService(Koord,NS),
+  PID ! {?BRIEFME,{Name, Mi, werkzeug:timeMilliSecond()}, self()},
+  State
 .
 
 %% Informiert den Koordinator dass der Prozess sich terminiert hat
