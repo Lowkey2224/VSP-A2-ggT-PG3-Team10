@@ -51,7 +51,7 @@ init(State) ->
 
 %% returns a new State
 calculate(State, Number) ->
-  [Mi|_] = dict:fetch(mi, State),
+  Mi = dict:fetch(mi, State),
   [TTW|_] = dict:fetch(ttw, State),
   [Timer|_] = dict:fetch(timer, State),
 [Name|_] = dict:fetch(name, State),
@@ -87,7 +87,7 @@ preProcess(State) ->
   [Name|_] =dict:fetch(name, State),
   receive
     {?SETPMI, Mi} ->
-      TmpState = dict:append(mi, Mi, State),
+      TmpState = dict:store(mi, Mi, State),
       NewState = dict:append(votetime, werkzeug:timeMilliSecond(), TmpState),
       tools:log(Name, "~p: ~p ~p ~p empfangen\n", [werkzeug:timeMilliSecond(), Name, ?SETPMI, Mi]),
       process(createTimer(NewState))
@@ -109,7 +109,7 @@ process(State) ->
       NewState = vote(State, Initiator),
       process(NewState);
     {?TELLMI, PID}->
-      [Mi|_]= dict:fetch(mi, State),
+      Mi = dict:fetch(mi, State),
       PID ! {?TELLMI_RES, Mi},
       process(State);
     {?WHATSON, PID} ->
@@ -159,7 +159,7 @@ briefMi(State) ->
 briefTermination(State) ->
   [Koord|_] = dict:fetch(koordinator, State),
   [NS|_] = dict:fetch(nsname, State),
-  [Mi|_] = dict:fetch(mi, State),
+  Mi = dict:fetch(mi, State),
   [Name|_] = dict:fetch(name, State),
   PID = ourTools:lookupNamewithNameService(Koord,NS),
   PID ! {?BRIEFTERM, {Name, Mi, werkzeug:timeMilliSecond()}, self()}
