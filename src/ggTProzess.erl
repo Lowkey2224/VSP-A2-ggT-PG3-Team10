@@ -21,11 +21,11 @@
 start() ->
   receive
     {TTW, TTT, Name, Nameservice, Koordinator} ->
-      State = dict:append(koordinator, Koordinator,
-        dict:append(nsname, Nameservice,
-          dict:append(name, Name,
-            dict:append(ttt, TTT,
-              dict:append(ttw, TTW, dict:new()))))),
+      State = dict:store(koordinator, Koordinator,
+        dict:store(nsname, Nameservice,
+          dict:store(name, Name,
+            dict:store(ttt, TTT,
+              dict:store(ttw, TTW, dict:new()))))),
       tools:log(Name, "~p ggtProzess erfolgreich gestartet mit Namen: ~s und PID ~p\n", [werkzeug:timeMilliSecond(), Name, self()]),
       init(State)
   end
@@ -33,8 +33,8 @@ start() ->
 
 %% Initialisierung
 init(State) ->
-  [NS|_] = dict:fetch(nsname, State),
-  [Name|_] = dict:fetch(name, State),
+  NS = dict:fetch(nsname, State),
+  Name = dict:fetch(name, State),
   ourTools:registerWithNameService(Name, NS),
   erlang:register(Name, self()),
   registerWithKoordinator(State),
@@ -52,9 +52,9 @@ init(State) ->
 %% returns a new State
 calculate(State, Number) ->
   Mi = dict:fetch(mi, State),
-  [TTW|_] = dict:fetch(ttw, State),
-  [Timer|_] = dict:fetch(timer, State),
-[Name|_] = dict:fetch(name, State),
+  TTW = dict:fetch(ttw, State),
+  Timer = dict:fetch(timer, State),
+Name = dict:fetch(name, State),
   StateWithoutTimer = dict:erase(timer, State),
 % TODO Fehler hier
   timer:cancel(Timer),
@@ -75,17 +75,17 @@ calculate(State, Number) ->
 
 createTimer(State) ->
 L = dict:fetch(left, State),
-[NS|_] =  dict:fetch(nsname, State),
+NS =  dict:fetch(nsname, State),
   PID = ourTools:lookupNamewithNameService(L, NS),
-  [MyName|_] = dict:fetch(name, State),
-[TTT|_] = dict:fetch(ttt, State),
+  MyName = dict:fetch(name, State),
+TTT = dict:fetch(ttt, State),
 %%   {ok, NewTimer} = timer:send_after(TTT, {?VOTE, MyName}, PID),
   {ok, NewTimer} = timer:apply_after(TTT, ggTProzess, initiateVote, [MyName,PID]),
-  dict:append(timer, NewTimer, State).
+  dict:store(timer, NewTimer, State).
 
 %% pre_process zustand
 preProcess(State) ->
-  [Name|_] =dict:fetch(name, State),
+  Name =dict:fetch(name, State),
   receive
     {?SETPMI, Mi} ->
       TmpState = dict:store(mi, Mi, State),
@@ -97,7 +97,7 @@ preProcess(State) ->
 
 %% Zustand Process
 process(State) ->
-[Name|_] =dict:fetch(name, State),
+Name =dict:fetch(name, State),
   tools:log(Name, "~p: ~p Processstate by PID ~p\n", [werkzeug:timeMilliSecond(),Name, self()]),
   receive
     {?SEND, Y} ->
@@ -127,12 +127,12 @@ computeWhatsOn(State, PID) ->
   State.
 
 sendMi(State) ->
-%%   [Name|_] =dict:fetch(name, State),
+%%   Name =dict:fetch(name, State),
   L = dict:fetch(left, State),
   R = dict:fetch(right, State),
   Foo = dict:fetch(mi, State),
   Mi = Foo,
-  [NS|_] = dict:fetch(nsname, State),
+  NS = dict:fetch(nsname, State),
   LPID = ourTools:lookupNamewithNameService(L, NS),
 %%   tools:log(Name, "~p: looked up ~p and got ~p PID: ~p\n", [werkzeug:timeMilliSecond(), L, LPID, self()]),
   RPID = ourTools:lookupNamewithNameService(R, NS),
@@ -146,10 +146,10 @@ sendMi(State) ->
 .
 %% Informiert den Koordinator ueber aenderungen von Mi
 briefMi(State) ->
-  [Koord|_] = dict:fetch(koordinator, State),
+  Koord = dict:fetch(koordinator, State),
   Mi = dict:fetch(mi, State),
-  [Name|_] = dict:fetch(name, State),
-  [NS|_] = dict:fetch(nsname, State),
+  Name = dict:fetch(name, State),
+  NS = dict:fetch(nsname, State),
   PID = ourTools:lookupNamewithNameService(Koord, NS),
   tools:log(Name, "~p: ~p sende ~p ~p \n", [werkzeug:timeMilliSecond(), Name, ?BRIEFME, Mi]),
   PID ! {?BRIEFME, {Name, Mi, werkzeug:timeMilliSecond()}},
@@ -158,10 +158,10 @@ briefMi(State) ->
 
 %% Informiert den Koordinator dass der Prozess sich terminiert hat
 briefTermination(State) ->
-  [Koord|_] = dict:fetch(koordinator, State),
-  [NS|_] = dict:fetch(nsname, State),
+  Koord = dict:fetch(koordinator, State),
+  NS = dict:fetch(nsname, State),
   Mi = dict:fetch(mi, State),
-  [Name|_] = dict:fetch(name, State),
+  Name = dict:fetch(name, State),
   PID = ourTools:lookupNamewithNameService(Koord,NS),
   tools:log(Name, "~p: ~p sende ~p mit Mi ~p \n", [werkzeug:timeMilliSecond(), Name, ?BRIEFTERM, Mi]),
   PID ! {?BRIEFTERM, {Name, Mi, werkzeug:timeMilliSecond()}, self()}
@@ -175,7 +175,7 @@ briefTermination(State) ->
 
 %% Diese Methode stimmt über die Terminierung ab
 vote(State, Name) ->
-  [MyName|_] = dict:fetch(name, State),
+  MyName = dict:fetch(name, State),
   if MyName == Name ->
       terminate(State);
     true ->
@@ -184,14 +184,14 @@ vote(State, Name) ->
 .
 
 processForeignVote(State, Name) ->
-  [MyName|_] = dict:fetch(name, State),
+  MyName = dict:fetch(name, State),
   Last = dict:fetch(votetime, State),
-  [TTT|_] = dict:fetch(ttt, State),
+  TTT = dict:fetch(ttt, State),
   Diff = calcDiff(Last),
   tools:log(MyName, "~p: ~p difference = ~p TTT = ~p\n", [werkzeug:timeMilliSecond(), MyName, Diff, TTT]),
   if (Diff > (TTT/2)) ->
     L = dict:fetch(left, State),
-    [NS|_] = dict:fetch(nsname, State),
+    NS = dict:fetch(nsname, State),
     PID = ourTools:lookupNamewithNameService(L,NS),
     tools:log(MyName, "~p: ~p sende ~p weiter\n", [werkzeug:timeMilliSecond(), MyName, ?VOTE]),
     PID ! {?VOTE, Name};
@@ -209,9 +209,9 @@ terminate(State) ->
 .
 
 registerWithKoordinator(State) ->
-  [Koord|_] = dict:fetch(koordinator, State),
-  [NS|_] = dict:fetch(nsname, State),
-  [Name|_] = dict:fetch(name, State),
+  Koord = dict:fetch(koordinator, State),
+  NS = dict:fetch(nsname, State),
+  Name = dict:fetch(name, State),
   PID = ourTools:lookupNamewithNameService(Koord,NS),
   PID ! {?CHECKIN, Name},
   State
