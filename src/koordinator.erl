@@ -199,7 +199,7 @@ startChosenClients(_, [], _) ->
   ok;
 startChosenClients(Target, Chosen, NSName) ->
   [GgT | Rest] = Chosen,
-  Y = werkzeug:bestimme_mis(Target, 1),
+  [Y|_] = werkzeug:bestimme_mis(Target, 1),
   PID = ourTools:lookupNamewithNameService(GgT, NSName),
   tools:log(?MYNAME, "~p: ~p schickt ~p ~p an: ~p\n", [werkzeug:timeMilliSecond(), ?MYNAME,?SEND, Y, PID]),
   PID ! {?SEND, Y},
