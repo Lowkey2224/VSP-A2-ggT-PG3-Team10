@@ -146,6 +146,7 @@ briefMi(State) ->
   [Name|_] = dict:fetch(name, State),
   [NS|_] = dict:fetch(nsname, State),
   PID = ourTools:lookupNamewithNameService(Koord, NS),
+  tools:log(Name, "~p: ~p sende ~p ~p \n", [werkzeug:timeMilliSecond(), Name, ?BRIEFME, Mi]),
   PID ! {?BRIEFME, {Name, Mi, werkzeug:timeMilliSecond()}, self()},
   State
 .
