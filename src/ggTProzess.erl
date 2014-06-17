@@ -57,7 +57,7 @@ calculate(State, Number) ->
 [Name|_] = dict:fetch(name, State),
   StateWithoutTimer = dict:erase(timer, State),
 % TODO Fehler hier
-  Val = timer:cancel(Timer),
+  timer:cancel(Timer),
 %%   tools:log(Name, "~p: Timer ~p and cancel Result ~p\n", [werkzeug:timeMilliSecond(), Timer, Val]),
   timer:sleep(TTW),
   case Number < Mi of
