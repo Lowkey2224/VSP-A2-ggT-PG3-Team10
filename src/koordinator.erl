@@ -142,7 +142,8 @@ ready(State) ->
       tools:log(?MYNAME, "~p: Berechnung gestartet\n", [werkzeug:timeMilliSecond()]),
       receive
         {?BRIEFME, {GgtName, Mi, Time}} ->
-          tools:log(?MYNAME, "~p: ggtNode ~p meldet neues Mi: ~p", [Time, GgtName, Mi]);
+          tools:log(?MYNAME, "~p: ggtNode ~p meldet neues Mi: ~p", [Time, GgtName, Mi]),
+          ready(State);
         {?BRIEFTERM, {GgtName, Mi, Time}, PID} ->
           computeGGTTermination(NewState, GgtName, Mi, Time, PID);
         {?RESET} ->
