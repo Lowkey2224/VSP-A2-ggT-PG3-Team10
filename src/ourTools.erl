@@ -36,7 +36,7 @@ PID = global:whereis_name(Nameservice),
   receiveLookupAnswer(Name)
 .
 
-receiveLookupAnswer(Name) ->
+receiveLookupAnswer(_) ->
   receive
     {?LOOKUP_RES, ?UNDEFINED} ->
 %%       werkzeug:logging(list_to_atom(lists:concat([logfile,Name])), io_lib:format("Service ~s ist unbekannt\n", [Name])),
