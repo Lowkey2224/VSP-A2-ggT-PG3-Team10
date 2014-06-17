@@ -201,7 +201,7 @@ processForeignVote(State, Name) ->
   .
 
 calcDiff(Last) ->
-  timer:now_diff(now()-Last)
+  timer:now_diff(now(),Last)
   .
 
 terminate(State) ->
