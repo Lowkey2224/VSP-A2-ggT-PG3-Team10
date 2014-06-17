@@ -31,22 +31,22 @@ erlang:register(?MYNAME, self()),
 %%   NSPID = global:whereis_name(Name),
 %   tools:log(?MYNAME, "Nameservicepid = ~p, fuer ~p \n",[NSPID, Name]),
   MyDict = dict:new(),
-  State1 = dict:append(nsname, Name, MyDict),
-  State2 = dict:append(rt, RegisterTime * 1000, State1),
-  State3 = dict:append(ggt_per_starter, GgtPerStarter, State2),
-  State4 = dict:append(ttw, TimeToWait * 1000, State3),
-  State5 = dict:append(ttt, TimeToTerminate * 1000, State4),
-  State6 = dict:append(clients, [], State5),
-  State = dict:append(startercount, 0, State6),
+  State1 = dict:store(nsname, Name, MyDict),
+  State2 = dict:store(rt, RegisterTime * 1000, State1),
+  State3 = dict:store(ggt_per_starter, GgtPerStarter, State2),
+  State4 = dict:store(ttw, TimeToWait * 1000, State3),
+  State5 = dict:store(ttt, TimeToTerminate * 1000, State4),
+  State6 = dict:store(clients, [], State5),
+  State = dict:store(startercount, 0, State6),
   init(State)
 .
 
 init(State) ->
-   [Nameservice|_] = dict:fetch(nsname, State),  
+   Nameservice = dict:fetch(nsname, State),
 %   tools:log(?MYNAME, "Nameservice = ~p, My Name = ~s\n",[Nameservice, MyName]),
   ok = ourTools:registerWithNameService(?MYNAME, Nameservice),
 %%   Register should only run for rt seconds
-  [RT|_] = dict:fetch(rt, State),
+  RT = dict:fetch(rt, State),
   This = self(),
 %%   We dont need to remember the Timer ourselfs
   {ok, _} = timer:send_after(RT, This, {end_register, This}),
@@ -57,21 +57,21 @@ init(State) ->
 
 sendNeighbours(Paired, NSName) ->
 % TODO Pruefen ob das wirklich funktionioert
-  dict:map(fun(Key, [{L, R}|_]) -> PID = ourTools:lookupNamewithNameService(Key, NSName), PID ! {?NEIGHBOURS, L, R},
+  dict:map(fun(Key, {L, R}) -> PID = ourTools:lookupNamewithNameService(Key, NSName), PID ! {?NEIGHBOURS, L, R},
     ok end, Paired)
 .
 
 buildRing(State) ->
-  [Clients|_] = dict:fetch(clients, State),
+  Clients = dict:fetch(clients, State),
   tools:log(?MYNAME, "~p: Baue Ring auf mit ~p Clients.\n", [werkzeug:timeMilliSecond(), length(Clients)]),
   [First | Rest1] = Clients,
   [Second | Rest] = Rest1,
   StateOne = {lists:last(Rest), Second},
   StateTwo = {First, nok},
-  Dict = dict:append(Second, StateTwo, dict:append(First, StateOne, dict:new())),
+  Dict = dict:store(Second, StateTwo, dict:store(First, StateOne, dict:new())),
 
   Paired = buildRing(Dict, Rest, Second, First),
-  [NSName|_] = dict:fetch(nsname, State),
+  NSName = dict:fetch(nsname, State),
   sendNeighbours(Paired, NSName),
   tools:log(?MYNAME, "~p: Wechselt in Ready State\n", [werkzeug:timeMilliSecond()]),
   ready(State)
@@ -80,19 +80,19 @@ buildRing(State) ->
 
 %% If the Last Element was the last Element in the List.
 buildRing(Paired, [], Last, First) ->
-  [{LeftLast, nok}|_] = dict:fetch(Last, Paired),
+  {LeftLast, nok} = dict:fetch(Last, Paired),
   TmpPaired = dict:erase(Last, Paired),
-  Ring = dict:append(Last, {LeftLast, First}, TmpPaired),
+  Ring = dict:store(Last, {LeftLast, First}, TmpPaired),
   tools:log(?MYNAME, "~p: Ring aufgebaut\n", [werkzeug:timeMilliSecond()]),
   Ring
 ;
 
 buildRing(Paired, Clients, Last, First) ->
-  [{LeftLast, nok}|_] = dict:fetch(Last, Paired),
+  {LeftLast, nok} = dict:fetch(Last, Paired),
   [Actual | Rest] = Clients,
   TmpPaired = dict:erase(Last, Paired),
-  TmpPaired2 = dict:append(Last, {LeftLast, Actual}, TmpPaired),
-  NewPaired = dict:append(Actual, {Last, nok}, TmpPaired2),
+  TmpPaired2 = dict:store(Last, {LeftLast, Actual}, TmpPaired),
+  NewPaired = dict:store(Actual, {Last, nok}, TmpPaired2),
   buildRing(NewPaired, Rest, Actual, First)
 .
 
@@ -126,13 +126,13 @@ selectRandomClients(State, Clients, ChosenClients, NumberOfCalcs) ->
 
 
 ready(State) ->
-  [Clients|_] = dict:fetch(clients, State),
-  [NSName|_] = dict:fetch(nsname, State),
+  Clients = dict:fetch(clients, State),
+  NSName = dict:fetch(nsname, State),
   ClientCount = length(Clients),
   receive
     {?CALC, Target} ->
       tools:log(?MYNAME, "~p: Calc mit Target ~p erhalten \n", [werkzeug:timeMilliSecond(), Target]),
-      NewState = dict:append(target, Target, State),
+      NewState = dict:store(target, Target, State),
       setPMIs(Clients, werkzeug:bestimme_mis(Target, ClientCount), NSName),
       tools:log(?MYNAME, "~p: Mis an die GGT Prozesse  verschickt.\n", [werkzeug:timeMilliSecond()]),
       NumberOfCalcs = max(2, ClientCount * 0.15),
@@ -169,7 +169,7 @@ insideReady(State) ->
 
 
 whats_on(State) ->
-  [NS|_] = dict:fetch(nsname, State),
+  NS = dict:fetch(nsname, State),
   Fun = fun(X) ->
     PID = ourTools:lookupNamewithNameService(X, NS),
     PID ! {?WHATSON, self()},
@@ -178,12 +178,12 @@ whats_on(State) ->
         tools:log(?MYNAME, "~p: ggtNode ~p meldet hat Zustand: ~p (abgefragt durch tell_mi)\n", [werkzeug:timeMilliSecond(), X, GGTState])
     end
   end,
-  [Clients|_] = dict:fetch(clients, State),
+  Clients = dict:fetch(clients, State),
   lists:map(Fun, Clients)
 .
 
 tell_mi(State) ->
-  [NS|_] = dict:fetch(nsname, State),
+  NS = dict:fetch(nsname, State),
   Fun = fun(X) ->
     PID = ourTools:lookupNamewithNameService(X, NS),
     PID ! {?TELLMI, self()},
@@ -192,14 +192,14 @@ tell_mi(State) ->
         tools:log(?MYNAME, "~p: ggtNode ~p meldet hat Mi: ~p (abgefragt durch tell_mi)\n", [werkzeug:timeMilliSecond(), X, Mi])
     end
   end,
-  [Clients|_] = dict:fetch(clients, State),
+  Clients = dict:fetch(clients, State),
   lists:map(Fun, Clients)
 .
 startChosenClients(_, [], _) ->
   ok;
 startChosenClients(Target, Chosen, NSName) ->
   [GgT | Rest] = Chosen,
-  [Y|_] = werkzeug:bestimme_mis(Target, 1),
+  Y = werkzeug:bestimme_mis(Target, 1),
   PID = ourTools:lookupNamewithNameService(GgT, NSName),
   tools:log(?MYNAME, "~p: ~p schickt ~p ~p an: ~p\n", [werkzeug:timeMilliSecond(), ?MYNAME,?SEND, Y, PID]),
   PID ! {?SEND, Y},
@@ -213,18 +213,18 @@ register(State) ->
   receive
     {?GGTVALS, PID} ->
        tools:log(?MYNAME, "~p: ~p hat Anfrage GGTVALS bekommen von PID: ~p\n", [werkzeug:timeMilliSecond(), ?MYNAME, PID]),
-      [TTW|_] = dict:fetch(ttw, State),
-      [TTT|_] = dict:fetch(ttt, State),
-      [GGTs|_] = dict:fetch(ggt_per_starter, State),
+      TTW = dict:fetch(ttw, State),
+      TTT = dict:fetch(ttt, State),
+      GGTs = dict:fetch(ggt_per_starter, State),
 	tools:log(?MYNAME, "~p: Sende TTW: ~p, TTT:~p, Anzahl GGTs pro Starter: ~p \n", [werkzeug:timeMilliSecond(), TTW, TTT, GGTs]),
       PID ! {?GGTVALS_RES, TTW, TTT, GGTs},
       register(State);
 
     {get_starter_number, PID} ->
-      [NN|_] = dict:fetch(startercount, State),
+      NN = dict:fetch(startercount, State),
       Number = NN+1,
       TmpState = dict:erase(startercount, State),
-      NewState = dict:append(startercount, Number, TmpState),
+      NewState = dict:store(startercount, Number, TmpState),
       tools:log(?MYNAME, "~p: Starter fragt nach Starternummer: ~p\n", [werkzeug:timeMilliSecond(), Number]),
       PID ! {starter_number, Number},
       register(NewState)
@@ -254,16 +254,16 @@ initPhase(State) ->
 addClient(State, Name) ->
 	{Status,_} = dict:find(clients,State),
   Clients =  if Status == ok ->
-	[List|_] = dict:fetch(clients,State),
+	List = dict:fetch(clients,State),
 	List;
   Status =/= ok -> []
 end,
 
 
 
-%   [GgtList|_] = dict:fetch(clients, State),
+%   GgtList = dict:fetch(clients, State),
   NewList = [Name| Clients],
-  dict:append(clients, NewList, dict:erase(clients, State))
+  dict:store(clients, NewList, dict:erase(clients, State))
 .
 
 %% bearbeitet eine Terminierungsnachricht eines ggtProzesses
@@ -275,8 +275,8 @@ computeGGTTermination(State, GgtName, Mi, Time, PID) ->
 
 %% Informiert die ggtProzesse ueber die Terminierung des koordinatorss
 kill(State) ->
-  [GgtList|_] = dict:fetch(clients, State),
-  [Ns|_] = dict:fetch(nsname, State),
+  GgtList = dict:fetch(clients, State),
+  Ns = dict:fetch(nsname, State),
   tools:log(?MYNAME, "~p: Sende Kill an alle GGT PRozesse\n", [werkzeug:timeMilliSecond()]),
   stopAllGGTs(GgtList, Ns),
   ourTools:unbindOnNameService(?MYNAME, Ns),
@@ -292,6 +292,7 @@ stopAllGGTs([], _) ->
 stopAllGGTs(Clients, NS) ->
   [Client | Rest] = Clients,
   Pid = ourTools:lookupNamewithNameService(Client, NS),
+  tools:log(?MYNAME, "~p: Sende Kill an ~p \n", [werkzeug:timeMilliSecond(),Pid]),
   Pid ! {?KILL},
   stopAllGGTs(Rest, NS)
 .
