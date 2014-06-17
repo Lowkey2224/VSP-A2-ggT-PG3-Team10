@@ -89,7 +89,7 @@ preProcess(State) ->
   receive
     {?SETPMI, Mi} ->
       TmpState = dict:store(mi, Mi, State),
-      NewState = dict:append(votetime, werkzeug:timeMilliSecond(), TmpState),
+      NewState = dict:append(votetime, now(), TmpState),
       tools:log(Name, "~p: ~p ~p ~p empfangen\n", [werkzeug:timeMilliSecond(), Name, ?SETPMI, Mi]),
       process(createTimer(NewState))
   end
@@ -103,7 +103,7 @@ process(State) ->
       tools:log(Name, "~p: ~p SEND ~p empfangen\n", [werkzeug:timeMilliSecond(),Name, Y]),
       TmpState = calculate(State, Y),
       Tmp2 = dict:erase(votetime, TmpState),
-      NewState = dict:append(votetime, werkzeug:timeMilliSecond(), Tmp2),
+      NewState = dict:append(votetime, now(), Tmp2),
       process(NewState);
     {?VOTE, Initiator} ->
       tools:log(Name, "~p: ~p VOTE von ~p empfangen\n", [werkzeug:timeMilliSecond(), Name, Initiator]),
@@ -179,22 +179,26 @@ vote(State, Name) ->
   if MyName == Name ->
       terminate(State);
     true ->
-      Now = werkzeug:timeMilliSecond(),
-      [Last|_] = dict:fetch(votetime, State),
-      [TTT|_] = dict:fetch(ttt, State),
-      Diff = Now-Last,
-      if (Diff > (TTT/2)) ->
-        L = dict:fetch(left, State),
-        [NS|_] = dict:fetch(nsname, State),
-        PID = ourTools:lookupNamewithNameService(L,NS),
-        tools:log(MyName, "~p: ~p sende ~p weiter\n", [werkzeug:timeMilliSecond(), MyName, ?VOTE]),
-        PID ! {?VOTE, Name};
-        true ->
-          tools:log(MyName, "~p: ~p sende ~p nicht weiter\n", [werkzeug:timeMilliSecond(), MyName, ?VOTE])
-        end
-
+      processForeignVote(State,Name)
   end
 .
+
+processForeignVote(State, Name) ->
+  [MyName|_] = dict:fetch(name, State),
+  [Last|_] = dict:fetch(votetime, State),
+  [TTT|_] = dict:fetch(ttt, State),
+  Diff = timer:now_diff(now()-Last),
+  tools:log(MyName, "~p: ~p difference = ~p TTT = ~p\n", [werkzeug:timeMilliSecond(), MyName, Diff, TTT]),
+  if (Diff > (TTT/2)) ->
+    L = dict:fetch(left, State),
+    [NS|_] = dict:fetch(nsname, State),
+    PID = ourTools:lookupNamewithNameService(L,NS),
+    tools:log(MyName, "~p: ~p sende ~p weiter\n", [werkzeug:timeMilliSecond(), MyName, ?VOTE]),
+    PID ! {?VOTE, Name};
+    true ->
+      tools:log(MyName, "~p: ~p sende ~p nicht weiter\n", [werkzeug:timeMilliSecond(), MyName, ?VOTE])
+  end
+  .
 
 terminate(State) ->
   briefTermination(State)
