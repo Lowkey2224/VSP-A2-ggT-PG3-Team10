@@ -21,19 +21,17 @@
 start() ->
 
   {ok, Config} = file:consult("koordinator.cfg"),
-  {ok, Nameservice} = werkzeug:get_config_value(nameservicename, Config),
+  {ok, Name} = werkzeug:get_config_value(nameservicename, Config),
   {ok, RegisterTime} = werkzeug:get_config_value(rt, Config),
   {ok, GgtPerStarter} = werkzeug:get_config_value(ggt_per_starter, Config),
   {ok, TimeToWait} = werkzeug:get_config_value(ttw, Config),
   {ok, TimeToTerminate} = werkzeug:get_config_value(ttt, Config),
   global:register_name(?MYNAME, self()),
 erlang:register(?MYNAME, self()),
-%%   NSPID = global:whereis_name(Name),
+  NSPID = global:whereis_name(Name),
 %   tools:log(?MYNAME, "Nameservicepid = ~p, fuer ~p \n",[NSPID, Name]),
   MyDict = dict:new(),
-%%   net_adm:ping(Nameservice),
-  NSPID = global:whereis_name(Nameservice),
-  State1 = dict:append(nsname, NSPID, MyDict),
+  State1 = dict:append(nsname, Name, MyDict),
   State2 = dict:append(rt, RegisterTime * 1000, State1),
   State3 = dict:append(ggt_per_starter, GgtPerStarter, State2),
   State4 = dict:append(ttw, TimeToWait * 1000, State3),
@@ -45,7 +43,7 @@ erlang:register(?MYNAME, self()),
 
 init(State) ->
    [Nameservice|_] = dict:fetch(nsname, State),  
-   tools:log(?MYNAME, "Nameservice = ~p, My Name = ~s\n",[Nameservice, ?MYNAME]),
+%   tools:log(?MYNAME, "Nameservice = ~p, My Name = ~s\n",[Nameservice, MyName]),
   ok = ourTools:registerWithNameService(?MYNAME, Nameservice),
 %%   Register should only run for rt seconds
   [RT|_] = dict:fetch(rt, State),
