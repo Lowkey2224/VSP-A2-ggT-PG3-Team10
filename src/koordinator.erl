@@ -137,7 +137,7 @@ ready(State) ->
       tools:log(?MYNAME, "~p: Mis an die GGT Prozesse  verschickt.\n", [werkzeug:timeMilliSecond()]),
       NumberOfCalcs = max(2, ClientCount * 0.15),
       Chosen = selectRandomClients(NewState, Clients, [], NumberOfCalcs),
-      tools:log(?MYNAME, "~p: ~p zufaellige GGTs ausgewaehtl.\n", [werkzeug:timeMilliSecond(), NumberOfCalcs]),
+      tools:log(?MYNAME, "~p: ~p zufaellige GGTs ausgewaehtl und eine Liste von Laenge ~p.\n", [werkzeug:timeMilliSecond(), NumberOfCalcs, length(Chosen)]),
       startChosenClients(Target, Chosen, NSName),
       tools:log(?MYNAME, "~p: Berechnung gestartet\n", [werkzeug:timeMilliSecond()]),
       receive
