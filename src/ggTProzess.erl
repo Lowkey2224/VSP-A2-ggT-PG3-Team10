@@ -89,7 +89,7 @@ preProcess(State) ->
   receive
     {?SETPMI, Mi} ->
       TmpState = dict:store(mi, Mi, State),
-      NewState = dict:append(votetime, now(), TmpState),
+      NewState = dict:store(votetime, now(), TmpState),
       tools:log(Name, "~p: ~p ~p ~p empfangen\n", [werkzeug:timeMilliSecond(), Name, ?SETPMI, Mi]),
       process(createTimer(NewState))
   end
@@ -102,8 +102,7 @@ process(State) ->
     {?SEND, Y} ->
       tools:log(Name, "~p: ~p SEND ~p empfangen\n", [werkzeug:timeMilliSecond(),Name, Y]),
       TmpState = calculate(State, Y),
-      Tmp2 = dict:erase(votetime, TmpState),
-      NewState = dict:append(votetime, now(), Tmp2),
+      NewState = dict:store(votetime, now(), TmpState),
       process(NewState);
     {?VOTE, Initiator} ->
       tools:log(Name, "~p: ~p VOTE von ~p empfangen\n", [werkzeug:timeMilliSecond(), Name, Initiator]),
@@ -127,16 +126,16 @@ computeWhatsOn(State, PID) ->
   State.
 
 sendMi(State) ->
-  [Name|_] =dict:fetch(name, State),
+%%   [Name|_] =dict:fetch(name, State),
   L = dict:fetch(left, State),
   R = dict:fetch(right, State),
   Foo = dict:fetch(mi, State),
   Mi = Foo,
   [NS|_] = dict:fetch(nsname, State),
   LPID = ourTools:lookupNamewithNameService(L, NS),
-  tools:log(Name, "~p: looked up ~p and got ~p PID: ~p\n", [werkzeug:timeMilliSecond(), L, LPID, self()]),
+%%   tools:log(Name, "~p: looked up ~p and got ~p PID: ~p\n", [werkzeug:timeMilliSecond(), L, LPID, self()]),
   RPID = ourTools:lookupNamewithNameService(R, NS),
-  tools:log(Name, "~p: looked up ~p and got ~p PID: ~p\n", [werkzeug:timeMilliSecond(), R, RPID, self()]),
+%%   tools:log(Name, "~p: looked up ~p and got ~p PID: ~p\n", [werkzeug:timeMilliSecond(), R, RPID, self()]),
 %%   tools:log(Name, "~p: ~p sende ~p ~p and ~p\n", [werkzeug:timeMilliSecond(), Name, ?SEND, Mi, L]),
   LPID ! {?SEND, Mi},
 %%   tools:log(Name, "~p: ~p sende ~p ~p and ~p\n", [werkzeug:timeMilliSecond(), Name, ?SEND, Mi, R]),
@@ -185,7 +184,7 @@ vote(State, Name) ->
 
 processForeignVote(State, Name) ->
   [MyName|_] = dict:fetch(name, State),
-  [Last|_] = dict:fetch(votetime, State),
+  Last = dict:fetch(votetime, State),
   [TTT|_] = dict:fetch(ttt, State),
   Diff = calcDiff(Last),
   tools:log(MyName, "~p: ~p difference = ~p TTT = ~p\n", [werkzeug:timeMilliSecond(), MyName, Diff, TTT]),
@@ -201,7 +200,7 @@ processForeignVote(State, Name) ->
   .
 
 calcDiff(Last) ->
-  timer:now_diff(now(),Last)
+  timer:now_diff(now(),Last)/1000
   .
 
 terminate(State) ->
