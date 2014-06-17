@@ -25,7 +25,7 @@ registerWithNameService(Name, Nameservice) ->
   PID ! {self(), {?REBIND, Name, node()}},
   receive
     {?REBIND_RES, ok} ->
-      werkzeug:logging(list_to_atom(lists:concat([logfile,Name])), io_lib:format("Service ~p ist nun bekannt\n", [Name])),
+%%       werkzeug:logging(list_to_atom(lists:concat([logfile,Name])), io_lib:format("Service ~p ist nun bekannt\n", [Name])),
       ok
   end
   .
@@ -35,10 +35,10 @@ PID = global:whereis_name(Nameservice),
   PID ! {self(), {?LOOKUP, Name }},
   receive
     {?LOOKUP_RES, ?UNDEFINED} ->
-      werkzeug:logging(list_to_atom(lists:concat([logfile,Name])), io_lib:format("Service ~s ist unbekannt\n", [Name])),
+%%       werkzeug:logging(list_to_atom(lists:concat([logfile,Name])), io_lib:format("Service ~s ist unbekannt\n", [Name])),
       ?UNDEFINED;
     {?LOOKUP_RES, {Name2, Node}} ->
-       werkzeug:logging(list_to_atom(lists:concat([logfile,Name])), io_lib:format("Service ~p wurde gefunden in: ~p\n", [Name, Node])),
+%%        werkzeug:logging(list_to_atom(lists:concat([logfile,Name])), io_lib:format("Service ~p wurde gefunden in: ~p\n", [Name, Node])),
 % 	werkzeug:logging(logfile, "Gefunden!\n"),
       {Name2, Node};
     Any ->
@@ -52,10 +52,10 @@ PID = global:whereis_name(Nameservice),
   PID ! {self(), {?UNBIND, Name }},
   receive
     {nok} ->
-      werkzeug:logging(list_to_atom(lists:concat([logfile,Name])), io_lib:format("Service ~s ist unbekannt\n", [Name])),
+%%       werkzeug:logging(list_to_atom(lists:concat([logfile,Name])), io_lib:format("Service ~s ist unbekannt\n", [Name])),
       {nok, ?UNDEFINED};
     {?LOOKUP_RES, PID} ->
-      werkzeug:logging(list_to_atom(lists:concat([logfile,Name])), io_lib:format("Service ~s wurde entfernt in: ~p\n", [Name, PID])),
+%%       werkzeug:logging(list_to_atom(lists:concat([logfile,Name])), io_lib:format("Service ~s wurde entfernt in: ~p\n", [Name, PID])),
       {ok, PID}
   end
 
