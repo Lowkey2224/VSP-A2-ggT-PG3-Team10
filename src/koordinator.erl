@@ -229,7 +229,8 @@ register(State) ->
     {end_register, MyPid} ->
       tools:log(?MYNAME, "~p: Koordinator geht in initialisierungsphase\n", [werkzeug:timeMilliSecond()]),
       initPhase(State);
-    X -> tools:log(?MYNAME, "~p: Nachricht nicht vertanden! ~p\n", [werkzeug:timeMilliSecond(),X])
+    X -> tools:log(?MYNAME, "~p: Nachricht nicht vertanden! ~p\n", [werkzeug:timeMilliSecond(),X]),
+      register(State)
   end
 
 .
