@@ -237,7 +237,8 @@ initPhase(State) ->
     {step} ->
       tools:log(?MYNAME, "~p: Koordinator hat Step erhalten und baut den Ring auf\n", [werkzeug:timeMilliSecond()]),
       buildRing(State);
-     X -> tools:log(?MYNAME, "~p: Nachricht nicht vertanden! ~p\n", [werkzeug:timeMilliSecond(),X])
+     X -> tools:log(?MYNAME, "~p: Nachricht nicht vertanden! ~p\n", [werkzeug:timeMilliSecond(),X]),
+       initPhase(State)
 
   end.
 
