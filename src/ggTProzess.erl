@@ -84,10 +84,12 @@ createTimer(State) ->
 
 %% pre_process zustand
 preProcess(State) ->
+  [Name|_] =dict:fetch(name, State),
   receive
     {?SETPMI, Mi} ->
       TmpState = dict:append(mi, Mi, State),
       NewState = dict:append(votetime, werkzeug:timeMilliSecond(), TmpState),
+      tools:log(Name, "~p: ~p ~p ~p empfangen\n", [werkzeug:timeMilliSecond(), Name, ?SETPMI, Mi]),
       process(createTimer(NewState))
   end
 .

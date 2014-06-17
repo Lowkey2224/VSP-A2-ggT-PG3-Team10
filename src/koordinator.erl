@@ -138,7 +138,7 @@ ready(State) ->
       Chosen = selectRandomClients(NewState, Clients, [], NumberOfCalcs),
       tools:log(?MYNAME, "~p: ~p zufaellige GGTs ausgewaehtl.\n", [werkzeug:timeMilliSecond(), NumberOfCalcs]),
       startChosenClients(Target, Chosen, NSName),
-      tools:log(?MYNAME, "~p: Berechnugn gestartet\n", [werkzeug:timeMilliSecond()]),
+      tools:log(?MYNAME, "~p: Berechnung gestartet\n", [werkzeug:timeMilliSecond()]),
       receive
         {?BRIEFME, {GgtName, Mi, Time}} ->
           tools:log(?MYNAME, "~p: ggtNode ~p meldet neues Mi: ~p", [Time, GgtName, Mi]);
@@ -192,8 +192,9 @@ startChosenClients(_, [], _) ->
   ok;
 startChosenClients(Target, Chosen, NSName) ->
   [GgT | Rest] = Chosen,
-  Y = werkzeug:bestimme_mis(Target, 1),
+  [Y|_] = werkzeug:bestimme_mis(Target, 1),
   PID = ourTools:lookupNamewithNameService(GgT, NSName),
+  tools:log(?MYNAME, "~p: ~p schickt ~p ~p an: ~p\n", [werkzeug:timeMilliSecond(), ?MYNAME,?SEND, Y, PID]),
   PID ! {?SEND, Y},
   startChosenClients(Target, Rest, NSName)
 .
