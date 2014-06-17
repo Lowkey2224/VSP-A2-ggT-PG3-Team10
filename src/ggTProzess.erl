@@ -97,6 +97,13 @@ preProcess(State) ->
 
 %% Zustand Process
 process(State) ->
+  try dict:fetch(name, State) of
+    Name ->
+      Name
+      catch Exception:Reason ->
+        io:format("Name schlug fehl dict sieht so aus ~p \nEx: ~p Reason ~p ~n",[State, Exception, Reason]),
+        dict:fetch(name,State)
+        end,
 Name =dict:fetch(name, State),
   tools:log(Name, "~p: ~p Processstate by PID ~p\n", [werkzeug:timeMilliSecond(),Name, self()]),
   receive
