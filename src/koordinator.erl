@@ -28,7 +28,7 @@ start() ->
   {ok, TimeToTerminate} = werkzeug:get_config_value(ttt, Config),
   global:register_name(?MYNAME, self()),
 erlang:register(?MYNAME, self()),
-  NSPID = global:whereis_name(Name),
+%%   NSPID = global:whereis_name(Name),
 %   tools:log(?MYNAME, "Nameservicepid = ~p, fuer ~p \n",[NSPID, Name]),
   MyDict = dict:new(),
   State1 = dict:append(nsname, Name, MyDict),
@@ -131,7 +131,7 @@ ready(State) ->
   ClientCount = length(Clients),
   receive
     {?CALC, Target} ->
-      tools:log(?MYNAME, "~p: Calc mit Targeet ~p erhalten \n", [werkzeug:timeMilliSecond(), Target]),
+      tools:log(?MYNAME, "~p: Calc mit Target ~p erhalten \n", [werkzeug:timeMilliSecond(), Target]),
       NewState = dict:append(target, Target, State),
       setPMIs(Clients, werkzeug:bestimme_mis(Target, ClientCount), NSName),
       tools:log(?MYNAME, "~p: Mis an die GGT Prozesse  verschickt.\n", [werkzeug:timeMilliSecond()]),
