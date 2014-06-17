@@ -121,6 +121,7 @@ process(State) ->
 .
 %% TODO
 computeWhatsOn(State, PID) ->
+  PID,
   error(not_implemented),
   State.
 
