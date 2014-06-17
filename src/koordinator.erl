@@ -160,7 +160,7 @@ insideReady(State) ->
     {?WHATSON} ->
       whats_on(State);
     {?TOGGLE} ->
-      ok;
+      State;
     {?KILL} ->
       tools:log(?MYNAME, "~p: ~p erhalten!\n", [werkzeug:timeMilliSecond(),?KILL]),
       kill(State);
@@ -276,8 +276,8 @@ computeGGTTermination(State, GgtName, Mi, Time, PID) ->
 
 %% Informiert die ggtProzesse ueber die Terminierung des koordinatorss
 kill(State) ->
-  [GgtList|_] = dict:fetch(State, clients),
-  [Ns|_] = dict:fetch(nsname, clients),
+  [GgtList|_] = dict:fetch(clients, State),
+  [Ns|_] = dict:fetch(nsname, State),
   tools:log(?MYNAME, "~p: Sende Kill an alle GGT PRozesse\n", [werkzeug:timeMilliSecond()]),
   stopAllGGTs(GgtList, Ns),
   ourTools:unbindOnNameService(?MYNAME, Ns),
