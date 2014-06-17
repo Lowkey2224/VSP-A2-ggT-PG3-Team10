@@ -82,8 +82,9 @@ buildRing(State) ->
 buildRing(Paired, [], Last, First) ->
   [{LeftLast, nok}|_] = dict:fetch(Last, Paired),
   TmpPaired = dict:erase(Last, Paired),
-   tools:log(?MYNAME, "~p: Ring aufgebaut\n", [werkzeug:timeMilliSecond()]),
-  dict:append(Last, {LeftLast, First}, TmpPaired)
+  Ring = dict:append(Last, {LeftLast, First}, TmpPaired),
+  tools:log(?MYNAME, "~p: Ring aufgebaut mit ~p Clients \n", [werkzeug:timeMilliSecond(), length(Ring)]),
+  Ring
 ;
 
 buildRing(Paired, Clients, Last, First) ->
