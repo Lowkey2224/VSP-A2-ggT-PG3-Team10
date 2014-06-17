@@ -80,7 +80,7 @@ L = dict:fetch(left, State),
   [MyName|_] = dict:fetch(name, State),
 [TTT|_] = dict:fetch(ttt, State),
 %%   {ok, NewTimer} = timer:send_after(TTT, {?VOTE, MyName}, PID),
-  {ok, NewTimer} = timer:apply_after(TTT, ggTProzess, vote, [MyName,PID]),
+  {ok, NewTimer} = timer:apply_after(TTT, ggTProzess, startVote, [MyName,PID]),
   dict:append(timer, NewTimer, State).
 
 %% pre_process zustand
@@ -207,7 +207,7 @@ registerWithKoordinator(State) ->
   State
 .
 
-vote(Name, PID) ->
+startVote(Name, PID) ->
   tools:log(Name, "~p: ~p Starte ~p",[werkzeug:timeMilliSecond(), Name, ?VOTE]),
   PID ! {?VOTE, Name}
 .
