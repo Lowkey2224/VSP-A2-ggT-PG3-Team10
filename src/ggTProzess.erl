@@ -97,7 +97,7 @@ preProcess(State) ->
 
 %% Zustand Process
 process(State) ->
-  tools:log(foo, "~p: Processstate by PID ~p dict = ~p\n", [werkzeug:timeMilliSecond(),self(), State]),
+%%   tools:log(foo, "~p: Processstate by PID ~p dict = ~p\n", [werkzeug:timeMilliSecond(),self(), State]),
   Name =dict:fetch(name, State),
   receive
     {?SEND, Y} ->
