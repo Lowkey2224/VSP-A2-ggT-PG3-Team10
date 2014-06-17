@@ -146,7 +146,7 @@ sendMi(State) ->
 %% Informiert den Koordinator ueber aenderungen von Mi
 briefMi(State) ->
   [Koord|_] = dict:fetch(koordinator, State),
-  [Mi|_] = dict:fetch(mi, State),
+  Mi = dict:fetch(mi, State),
   [Name|_] = dict:fetch(name, State),
   [NS|_] = dict:fetch(nsname, State),
   PID = ourTools:lookupNamewithNameService(Koord, NS),
