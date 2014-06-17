@@ -107,8 +107,7 @@ process(State) ->
       process(NewState);
     {?VOTE, Initiator} ->
       tools:log(Name, "~p: ~p VOTE von ~p empfangen\n", [werkzeug:timeMilliSecond(), Name, Initiator]),
-      NewState = vote(State, Initiator),
-      process(NewState);
+      process(vote(State, Initiator));
     {?TELLMI, PID}->
       Mi = dict:fetch(mi, State),
       PID ! {?TELLMI_RES, Mi},
@@ -164,7 +163,8 @@ briefTermination(State) ->
   Name = dict:fetch(name, State),
   PID = ourTools:lookupNamewithNameService(Koord,NS),
   tools:log(Name, "~p: ~p sende ~p mit Mi ~p \n", [werkzeug:timeMilliSecond(), Name, ?BRIEFTERM, Mi]),
-  PID ! {?BRIEFTERM, {Name, Mi, werkzeug:timeMilliSecond()}, self()}
+  PID ! {?BRIEFTERM, {Name, Mi, werkzeug:timeMilliSecond()}, self()},
+  State
 .
 
 %% Realisiert im Timer
@@ -193,11 +193,11 @@ processForeignVote(State, Name) ->
     L = dict:fetch(left, State),
     NS = dict:fetch(nsname, State),
     PID = ourTools:lookupNamewithNameService(L,NS),
-    tools:log(MyName, "~p: ~p sende ~p weiter\n", [werkzeug:timeMilliSecond(), MyName, ?VOTE]),
+%%     tools:log(MyName, "~p: ~p sende ~p weiter\n", [werkzeug:timeMilliSecond(), MyName, ?VOTE]),
     PID ! {?VOTE, Name},
     State;
     true ->
-      tools:log(MyName, "~p: ~p sende ~p nicht weiter\n", [werkzeug:timeMilliSecond(), MyName, ?VOTE]),
+%%       tools:log(MyName, "~p: ~p sende ~p nicht weiter\n", [werkzeug:timeMilliSecond(), MyName, ?VOTE]),
       State
   end
   .
