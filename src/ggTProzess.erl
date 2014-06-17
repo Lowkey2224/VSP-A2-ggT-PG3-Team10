@@ -79,7 +79,8 @@ L = dict:fetch(left, State),
   PID = ourTools:lookupNamewithNameService(L, NS),
   [MyName|_] = dict:fetch(name, State),
 [TTT|_] = dict:fetch(ttt, State),
-  {ok, NewTimer} = timer:send_after(TTT, {?VOTE, MyName}, PID),
+%%   {ok, NewTimer} = timer:send_after(TTT, {?VOTE, MyName}, PID),
+  {ok, NewTimer} = timer:apply_after(TTT, ggTProzess, vote, [MyName,PID]),
   dict:append(timer, NewTimer, State).
 
 %% pre_process zustand
@@ -162,6 +163,7 @@ briefTermination(State) ->
   Mi = dict:fetch(mi, State),
   [Name|_] = dict:fetch(name, State),
   PID = ourTools:lookupNamewithNameService(Koord,NS),
+  tools:log(Name, "~p: ~p sende ~p mit Mi ~p \n", [werkzeug:timeMilliSecond(), Name, ?BRIEFTERM, Mi]),
   PID ! {?BRIEFTERM, {Name, Mi, werkzeug:timeMilliSecond()}, self()}
 .
 
@@ -203,4 +205,9 @@ registerWithKoordinator(State) ->
   PID = ourTools:lookupNamewithNameService(Koord,NS),
   PID ! {?CHECKIN, Name},
   State
+.
+
+vote(Name, PID) ->
+  tools:log(Name, "~p: ~p Starte ~p",[werkzeug:timeMilliSecond(), Name, ?VOTE]),
+  PID ! {?VOTE, Name}
 .
