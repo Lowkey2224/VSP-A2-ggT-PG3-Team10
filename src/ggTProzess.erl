@@ -188,7 +188,7 @@ processForeignVote(State, Name) ->
   Last = dict:fetch(votetime, State),
   TTT = dict:fetch(ttt, State),
   Diff = calcDiff(Last),
-  tools:log(MyName, "~p: ~p difference = ~p TTT = ~p\n", [werkzeug:timeMilliSecond(), MyName, Diff, TTT]),
+%%   tools:log(MyName, "~p: ~p difference = ~p TTT = ~p\n", [werkzeug:timeMilliSecond(), MyName, Diff, TTT]),
   if (Diff > (TTT/2)) ->
     L = dict:fetch(left, State),
     NS = dict:fetch(nsname, State),
