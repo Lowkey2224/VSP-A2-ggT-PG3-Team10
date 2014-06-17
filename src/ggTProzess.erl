@@ -133,12 +133,12 @@ sendMi(State) ->
   Mi = Foo,
   [NS|_] = dict:fetch(nsname, State),
   LPID = ourTools:lookupNamewithNameService(L, NS),
-  tools:log(Name, "~p: looked up ~p and got ~p ~p\n", [werkzeug:timeMilliSecond(), L, LPID, self()]),
+  tools:log(Name, "~p: looked up ~p and got ~p PID: ~p\n", [werkzeug:timeMilliSecond(), L, LPID, self()]),
   RPID = ourTools:lookupNamewithNameService(R, NS),
-  tools:log(Name, "~p: looked up ~p and got ~p ~p\n", [werkzeug:timeMilliSecond(), R, RPID, self()]),
-  tools:log(Name, "~p: ~p sende ~p ~p and ~p\n", [werkzeug:timeMilliSecond(), Name, ?SEND, Mi, L]),
+  tools:log(Name, "~p: looked up ~p and got ~p PID: ~p\n", [werkzeug:timeMilliSecond(), R, RPID, self()]),
+%%   tools:log(Name, "~p: ~p sende ~p ~p and ~p\n", [werkzeug:timeMilliSecond(), Name, ?SEND, Mi, L]),
   LPID ! {?SEND, Mi},
-  tools:log(Name, "~p: ~p sende ~p ~p and ~p\n", [werkzeug:timeMilliSecond(), Name, ?SEND, Mi, R]),
+%%   tools:log(Name, "~p: ~p sende ~p ~p and ~p\n", [werkzeug:timeMilliSecond(), Name, ?SEND, Mi, R]),
   RPID ! {?SEND, Mi},
   briefMi(State)
 

@@ -42,7 +42,7 @@ PID = global:whereis_name(Nameservice),
 % 	werkzeug:logging(logfile, "Gefunden!\n"),
       {Name2, Node};
     Any ->
-      werkzeug:logging(list_to_atom(lists:concat([logfile,Name])), io_lib:format("~p: Komische Nachricht ~p\n", [werkzeug:timeMilliSecond(), Any]))
+      werkzeug:logging(list_to_atom(lists:concat([logfile,Name])), io_lib:format("~p: Komische Nachricht ~p PID ~p\n", [werkzeug:timeMilliSecond(), Any, self()]))
   end
 .
 
