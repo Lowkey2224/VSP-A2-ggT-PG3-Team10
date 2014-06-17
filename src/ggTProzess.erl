@@ -79,7 +79,7 @@ createTimer(State) ->
   PID = ourTools:lookupNamewithNameService(L, NS),
   [MyName|_] = dict:fetch(name, State),
 [TTT|_] = dict:fetch(ttt, State),
-  NewTimer = timer:send_after(TTT, {?VOTE, MyName}, PID),
+  {ok, NewTimer} = timer:send_after(TTT, {?VOTE, MyName}, PID),
   dict:append(timer, NewTimer, State).
 
 %% pre_process zustand
@@ -97,10 +97,10 @@ process(State) ->
 [Name|_] =dict:fetch(name, State),
   receive
     {?SEND, Y} ->
+      tools:log(Name, "~p: SEND ~p empfangen\n", [werkzeug:timeMilliSecond(), Y]),
       TmpState = calculate(State, Y),
       Tmp2 = dict:erase(votetime, TmpState),
       NewState = dict:append(votetime, werkzeug:timeMilliSecond(), Tmp2),
-%%       tools:log(Name, "~p: Timer ~p and cancel Result ~p\n", [werkzeug:timeMilliSecond(), Timer, Val]),
       process(NewState);
     {?VOTE, Name} ->
       NewState = vote(State, Name),
