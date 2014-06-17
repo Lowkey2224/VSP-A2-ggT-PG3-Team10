@@ -103,7 +103,7 @@ process(State) ->
       NewState = dict:append(votetime, werkzeug:timeMilliSecond(), Tmp2),
       process(NewState);
     {?VOTE, Initiator} ->
-      tools:log(Name, "~p: ~p VOTE von ~p empfangen\n", [werkzeug:timeMilliSecond(), Name, Initiator),
+      tools:log(Name, "~p: ~p VOTE von ~p empfangen\n", [werkzeug:timeMilliSecond(), Name, Initiator]),
       NewState = vote(State, Initiator),
       process(NewState);
     {?TELLMI, PID}->
