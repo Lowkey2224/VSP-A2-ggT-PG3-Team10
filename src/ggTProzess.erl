@@ -210,6 +210,6 @@ registerWithKoordinator(State) ->
 .
 
 initiateVote(Name, PID) ->
-  tools:log(Name, "~p: ~p Starte ~p",[werkzeug:timeMilliSecond(), Name, ?VOTE]),
+  tools:log(Name, "~p: ~p Starte ~p \n",[werkzeug:timeMilliSecond(), Name, ?VOTE]),
   PID ! {?VOTE, Name}
 .
