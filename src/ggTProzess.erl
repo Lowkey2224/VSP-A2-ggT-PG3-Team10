@@ -125,13 +125,16 @@ computeWhatsOn(State, PID) ->
   State.
 
 sendMi(State) ->
+  [Name|_] =dict:fetch(name, State),
   [L|_] = dict:fetch(left, State),
   [R|_] = dict:fetch(right, State),
   [Mi|_] = dict:fetch(mi, State),
   [NS|_] = dict:fetch(nsname, State),
   LPID = ourTools:lookupNamewithNameService(L, NS),
   RPID = ourTools:lookupNamewithNameService(R, NS),
+  tools:log(Name, "~p: ~p sende ~p ~p and ~p\n", [werkzeug:timeMilliSecond(), Name, ?SEND, Mi, L]),
   LPID ! {?SEND, Mi},
+  tools:log(Name, "~p: ~p sende ~p ~p and ~p\n", [werkzeug:timeMilliSecond(), Name, ?SEND, Mi, R]),
   RPID ! {?SEND, Mi},
   briefMi(State)
 
