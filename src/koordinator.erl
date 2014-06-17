@@ -45,7 +45,7 @@ erlang:register(?MYNAME, self()),
 
 init(State) ->
    [Nameservice|_] = dict:fetch(nsname, State),  
-%   tools:log(?MYNAME, "Nameservice = ~p, My Name = ~s\n",[Nameservice, MyName]),
+   tools:log(?MYNAME, "Nameservice = ~p, My Name = ~s\n",[Nameservice, ?MYNAME]),
   ok = ourTools:registerWithNameService(?MYNAME, Nameservice),
 %%   Register should only run for rt seconds
   [RT|_] = dict:fetch(rt, State),
