@@ -176,7 +176,7 @@ briefTermination(State) ->
 %% Diese Methode stimmt über die Terminierung ab
 vote(State, Name) ->
   [MyName|_] = dict:fetch(name, State),
-  case MyName =:= Name of
+  case MyName == Name of
     true ->
       terminate(State);
     _Else ->
