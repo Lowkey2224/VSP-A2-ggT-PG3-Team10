@@ -40,8 +40,8 @@ init(State) ->
   registerWithKoordinator(State),
   receive
     {?NEIGHBOURS, L, R} ->
-      NewState = dict:append(left, L,
-        dict:append(right, R, State)),
+      NewState = dict:store(left, L,
+        dict:store(right, R, State)),
       tools:log(Name, "~p: ~p hat Linken Nachbarn ~p und rechten Nachbarn ~p\n", [werkzeug:timeMilliSecond(), Name, L,R]),
       preProcess(NewState)
   end
@@ -74,7 +74,7 @@ calculate(State, Number) ->
 .
 
 createTimer(State) ->
-[L|_] = dict:fetch(left, State),
+L = dict:fetch(left, State),
 [NS|_] =  dict:fetch(nsname, State),
   PID = ourTools:lookupNamewithNameService(L, NS),
   [MyName|_] = dict:fetch(name, State),
@@ -127,15 +127,17 @@ computeWhatsOn(State, PID) ->
 
 sendMi(State) ->
   [Name|_] =dict:fetch(name, State),
-  [L|_] = dict:fetch(left, State),
-  [R|_] = dict:fetch(right, State),
+  L = dict:fetch(left, State),
+  R = dict:fetch(right, State),
   tools:log(Name, "~p: fetched right ~p ~p\n", [werkzeug:timeMilliSecond(), R, self()]),
   Foo = dict:fetch(mi, State),
   tools:log(Name, "~p: fetched Mi ~p ~p\n", [werkzeug:timeMilliSecond(), Foo, self()]),
   Mi = Foo,
   [NS|_] = dict:fetch(nsname, State),
   LPID = ourTools:lookupNamewithNameService(L, NS),
+  tools:log(Name, "~p: fetched Mi ~p ~p\n", [werkzeug:timeMilliSecond(), Foo, self()]),
   RPID = ourTools:lookupNamewithNameService(R, NS),
+  tools:log(Name, "~p: fetched Mi ~p ~p\n", [werkzeug:timeMilliSecond(), Foo, self()]),
   tools:log(Name, "~p: ~p sende ~p ~p and ~p\n", [werkzeug:timeMilliSecond(), Name, ?SEND, Mi, L]),
   LPID ! {?SEND, Mi},
   tools:log(Name, "~p: ~p sende ~p ~p and ~p\n", [werkzeug:timeMilliSecond(), Name, ?SEND, Mi, R]),
@@ -183,7 +185,7 @@ vote(State, Name) ->
       [TTT|_] = dict:fetch(ttt, State),
       Diff = Now-Last,
       if (Diff > (TTT/2)) ->
-        [L|_] = dict:fetch(left, State),
+        L = dict:fetch(left, State),
         [NS|_] = dict:fetch(nsname, State),
         PID = ourTools:lookupNamewithNameService(L,NS),
         PID ! {?VOTE, Name}
