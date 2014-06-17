@@ -12,7 +12,7 @@
 -author("Marilena").
 
 %% API
--export([start/0]).
+-export([start/0, init/1]).
 -import(werkzeug, []).
 -include("constants.hrl").
 -include("messages.hrl").
@@ -94,13 +94,13 @@ preProcess(State) ->
 
 %% Zustand Process
 process(State) ->
-[Name|_} =dict:fetch(name, State),
+[Name|_] = dict:fetch(name, State),
   receive
     {?SEND, Y} ->
       TmpState = calculate(State, Y),
       Tmp2 = dict:erase(votetime, TmpState),
       NewState = dict:append(votetime, werkzeug:timeMilliSecond(), Tmp2),
-      tools:log(Name, "~p: Timer ~p and cancel Result ~p\n", [werkzeug:timeMilliSecond(), Timer, Val]),
+%%       tools:log(Name, "~p: Timer ~p and cancel Result ~p\n", [werkzeug:timeMilliSecond(), Timer, Val]),
       process(NewState);
     {?VOTE, Name} ->
       NewState = vote(State, Name),
