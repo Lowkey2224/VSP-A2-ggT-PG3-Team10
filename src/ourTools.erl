@@ -54,9 +54,9 @@ PID = global:whereis_name(Nameservice),
     {nok} ->
 %%       werkzeug:logging(list_to_atom(lists:concat([logfile,Name])), io_lib:format("Service ~s ist unbekannt\n", [Name])),
       {nok, ?UNDEFINED};
-    {?LOOKUP_RES, PID} ->
+    {?UNBIND_RES, PID} ->
 %%       werkzeug:logging(list_to_atom(lists:concat([logfile,Name])), io_lib:format("Service ~s wurde entfernt in: ~p\n", [Name, PID])),
-      {ok, PID}
+      PID
   end
 
 .
