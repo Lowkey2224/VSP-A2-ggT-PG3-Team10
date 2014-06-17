@@ -156,6 +156,7 @@ ready(State) ->
         {?TOGGLE} ->
           ok;
         {?KILL} ->
+          tools:log(?MYNAME, "~p: ~p erhalten!\n", [werkzeug:timeMilliSecond(),?KILL]),
           kill(NewState);
          X -> tools:log(?MYNAME, "~p: Nachricht nicht vertanden! ~p\n", [werkzeug:timeMilliSecond(),X])
       end
