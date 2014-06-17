@@ -97,16 +97,17 @@ process(State) ->
 [Name|_] =dict:fetch(name, State),
   receive
     {?SEND, Y} ->
-      tools:log(Name, "~p: SEND ~p empfangen\n", [werkzeug:timeMilliSecond(), Y]),
+      tools:log(Name, "~p: ~p SEND ~p empfangen\n", [werkzeug:timeMilliSecond(),Name, Y]),
       TmpState = calculate(State, Y),
       Tmp2 = dict:erase(votetime, TmpState),
       NewState = dict:append(votetime, werkzeug:timeMilliSecond(), Tmp2),
       process(NewState);
-    {?VOTE, Name} ->
-      NewState = vote(State, Name),
+    {?VOTE, Initiator} ->
+      tools:log(Name, "~p: ~p VOTE von ~p empfangen\n", [werkzeug:timeMilliSecond(), Name, Initiator),
+      NewState = vote(State, Initiator),
       process(NewState);
     {?TELLMI, PID}->
-[Mi|_]= dict:fetch(mi, State),
+      [Mi|_]= dict:fetch(mi, State),
       PID ! {?TELLMI_RES, Mi},
       process(State);
     {?WHATSON, PID} ->
