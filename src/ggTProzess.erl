@@ -177,7 +177,7 @@ briefTermination(State) ->
 vote(State, Name) ->
   MyName = dict:fetch(name, State),
   if MyName == Name ->
-      terminate(State);
+    briefTermination(State);
     true ->
       processForeignVote(State,Name)
   end
@@ -207,7 +207,9 @@ calcDiff(Last) ->
   .
 
 terminate(State) ->
-  briefTermination(State)
+  Name = dict:fetch(name, State),
+  ourTools:unbindOnNameService(Name, dict:fetch(nsname, State)),
+  tools:log(Name, "~p: ~p beendet sich.\n", [werkzeug:timeMilliSecond(), Name])
 .
 
 registerWithKoordinator(State) ->

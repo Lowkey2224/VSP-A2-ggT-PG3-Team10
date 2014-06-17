@@ -270,6 +270,9 @@ end,
 %% bearbeitet eine Terminierungsnachricht eines ggtProzesses
 computeGGTTermination(State, GgtName, Mi, Time, PID) ->
   tools:log(?MYNAME, "~p: ggtNode ~p  an ~p meldet terminierung mit Ergebnis: ~p", [Time, GgtName, PID, Mi]),
+  [Clients|_] = dict:fetch(clients, State),
+  [NS|_] = dict:fetch(nsname, State),
+  lists:map(fun(X) -> ourTools:lookupNamewithNameService(X,NS) ! {kill} end, Clients),
   State
 .
 
