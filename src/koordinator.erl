@@ -126,7 +126,7 @@ selectRandomClients(State, Clients, ChosenClients, NumberOfCalcs) ->
 
 
 ready(State) ->
-  tools:log(?MYNAME, "~p: READY! \n", [Time, GgtName, Mi]),
+  tools:log(?MYNAME, "~p: READY! \n", [werkzeug:timeMilliSecond()]),
   [Clients|_] = dict:fetch(clients, State),
   [NSName|_] = dict:fetch(nsname, State),
   ClientCount = length(Clients),
