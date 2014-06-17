@@ -141,29 +141,33 @@ ready(State) ->
       tools:log(?MYNAME, "~p: ~p zufaellige GGTs ausgewaehtl und eine Liste von Laenge ~p.\n", [werkzeug:timeMilliSecond(), NumberOfCalcs, length(Chosen)]),
       startChosenClients(Target, Chosen, NSName),
       tools:log(?MYNAME, "~p: Berechnung gestartet\n", [werkzeug:timeMilliSecond()]),
-      receive
-        {?BRIEFME, {GgtName, Mi, Time}} ->
-          tools:log(?MYNAME, "~p: ggtNode ~p meldet neues Mi: ~p\n", [Time, GgtName, Mi]),
-          ready(State);
-        {?BRIEFTERM, {GgtName, Mi, Time}, PID} ->
-          computeGGTTermination(NewState, GgtName, Mi, Time, PID);
-        {?RESET} ->
-          reset(NewState);
-        {?PROMPT} ->
-          tell_mi(NewState);
-        {?WHATSON} ->
-          whats_on(NewState);
-        {?TOGGLE} ->
-          ok;
-        {?KILL} ->
-          tools:log(?MYNAME, "~p: ~p erhalten!\n", [werkzeug:timeMilliSecond(),?KILL]),
-          kill(NewState);
-         X -> tools:log(?MYNAME, "~p: Nachricht nicht vertanden! ~p\n", [werkzeug:timeMilliSecond(),X])
-      end
-
+      insideReady(NewState)
   end,
   ok
 .
+
+insideReady(State) ->
+  receive
+    {?BRIEFME, {GgtName, Mi, Time}} ->
+      tools:log(?MYNAME, "~p: ggtNode ~p meldet neues Mi: ~p\n", [Time, GgtName, Mi]),
+      insideReady(State);
+    {?BRIEFTERM, {GgtName, Mi, Time}, PID} ->
+      computeGGTTermination(State, GgtName, Mi, Time, PID);
+    {?RESET} ->
+      reset(State);
+    {?PROMPT} ->
+      tell_mi(State);
+    {?WHATSON} ->
+      whats_on(State);
+    {?TOGGLE} ->
+      ok;
+    {?KILL} ->
+      tools:log(?MYNAME, "~p: ~p erhalten!\n", [werkzeug:timeMilliSecond(),?KILL]),
+      kill(State);
+    X -> tools:log(?MYNAME, "~p: Nachricht nicht vertanden! ~p\n", [werkzeug:timeMilliSecond(),X])
+  end
+  .
+
 
 whats_on(State) ->
   [NS|_] = dict:fetch(nsname, State),
