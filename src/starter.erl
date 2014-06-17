@@ -81,5 +81,6 @@ startGGTProcesses(NumberOfProcesses, State) ->
 .
 
 terminate(State) ->
+  State,
   ok
 .
