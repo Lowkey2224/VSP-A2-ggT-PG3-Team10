@@ -194,9 +194,11 @@ processForeignVote(State, Name) ->
     NS = dict:fetch(nsname, State),
     PID = ourTools:lookupNamewithNameService(L,NS),
     tools:log(MyName, "~p: ~p sende ~p weiter\n", [werkzeug:timeMilliSecond(), MyName, ?VOTE]),
-    PID ! {?VOTE, Name};
+    PID ! {?VOTE, Name},
+    State;
     true ->
-      tools:log(MyName, "~p: ~p sende ~p nicht weiter\n", [werkzeug:timeMilliSecond(), MyName, ?VOTE])
+      tools:log(MyName, "~p: ~p sende ~p nicht weiter\n", [werkzeug:timeMilliSecond(), MyName, ?VOTE]),
+      State
   end
   .
 
