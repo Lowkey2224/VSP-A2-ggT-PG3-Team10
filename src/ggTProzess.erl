@@ -64,7 +64,7 @@ calculate(State, Number) ->
     true ->
       NewMi = ((Mi - 1) rem Number) + 1,
       tools:log(Name, "~p: ~p hat neuen Wert Mi ~p\n", [werkzeug:timeMilliSecond(), Name, NewMi]),
-      TempState = dict:store(mi, NewMi, dict:erase(mi, StateWithoutTimer)),
+      TempState = dict:store(mi, NewMi, StateWithoutTimer),
       NewState = sendMi(TempState),
       createTimer(NewState);
     _Else ->
@@ -129,9 +129,9 @@ sendMi(State) ->
   [Name|_] =dict:fetch(name, State),
   [L|_] = dict:fetch(left, State),
   [R|_] = dict:fetch(right, State),
-  tools:log(Name, "~p: fetched right ~p\n", [werkzeug:timeMilliSecond(), R]),
+  tools:log(Name, "~p: fetched right ~p ~p\n", [werkzeug:timeMilliSecond(), R, self()]),
   Foo = dict:fetch(mi, State),
-  tools:log(Name, "~p: fetched Mi ~p\n", [werkzeug:timeMilliSecond(), Foo]),
+  tools:log(Name, "~p: fetched Mi ~p ~p\n", [werkzeug:timeMilliSecond(), Foo, self()]),
   Mi = Foo,
   [NS|_] = dict:fetch(nsname, State),
   LPID = ourTools:lookupNamewithNameService(L, NS),
@@ -151,7 +151,7 @@ briefMi(State) ->
   [NS|_] = dict:fetch(nsname, State),
   PID = ourTools:lookupNamewithNameService(Koord, NS),
   tools:log(Name, "~p: ~p sende ~p ~p \n", [werkzeug:timeMilliSecond(), Name, ?BRIEFME, Mi]),
-  PID ! {?BRIEFME, {Name, Mi, werkzeug:timeMilliSecond()}, self()},
+  PID ! {?BRIEFME, {Name, Mi, werkzeug:timeMilliSecond()}},
   State
 .
 
