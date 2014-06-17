@@ -132,7 +132,7 @@ sendMi(State) ->
   tools:log(Name, "~p: fetched right ~p\n", [werkzeug:timeMilliSecond(), R]),
   Foo = dict:fetch(mi, State),
   tools:log(Name, "~p: fetched Mi ~p\n", [werkzeug:timeMilliSecond(), Foo]),
-  [Mi|_] = Foo,
+  Mi = Foo,
   [NS|_] = dict:fetch(nsname, State),
   LPID = ourTools:lookupNamewithNameService(L, NS),
   RPID = ourTools:lookupNamewithNameService(R, NS),
