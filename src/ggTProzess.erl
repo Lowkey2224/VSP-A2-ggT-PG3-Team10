@@ -187,7 +187,7 @@ processForeignVote(State, Name) ->
   [MyName|_] = dict:fetch(name, State),
   [Last|_] = dict:fetch(votetime, State),
   [TTT|_] = dict:fetch(ttt, State),
-  Diff = timer:now_diff(now()-Last),
+  Diff = calcDiff(Last),
   tools:log(MyName, "~p: ~p difference = ~p TTT = ~p\n", [werkzeug:timeMilliSecond(), MyName, Diff, TTT]),
   if (Diff > (TTT/2)) ->
     L = dict:fetch(left, State),
@@ -198,6 +198,10 @@ processForeignVote(State, Name) ->
     true ->
       tools:log(MyName, "~p: ~p sende ~p nicht weiter\n", [werkzeug:timeMilliSecond(), MyName, ?VOTE])
   end
+  .
+
+calcDiff(Last) ->
+  timer:now_diff(now()-Last)
   .
 
 terminate(State) ->
