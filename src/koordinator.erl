@@ -126,7 +126,6 @@ selectRandomClients(State, Clients, ChosenClients, NumberOfCalcs) ->
 
 
 ready(State) ->
-  tools:log(?MYNAME, "~p: READY! \n", [werkzeug:timeMilliSecond()]),
   [Clients|_] = dict:fetch(clients, State),
   [NSName|_] = dict:fetch(nsname, State),
   ClientCount = length(Clients),
@@ -269,7 +268,7 @@ end,
 
 %% bearbeitet eine Terminierungsnachricht eines ggtProzesses
 computeGGTTermination(State, GgtName, Mi, Time, PID) ->
-  tools:log(?MYNAME, "~p: ggtNode ~p  an ~p meldet terminierung mit Ergebnis: ~p", [Time, GgtName, PID, Mi]),
+  tools:log(?MYNAME, "~p: ggtNode ~p  an ~p meldet terminierung mit Ergebnis: ~p\n", [Time, GgtName, PID, Mi]),
   kill(State),
   insideReady(State)
 .
