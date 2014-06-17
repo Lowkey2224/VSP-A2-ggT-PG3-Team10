@@ -63,7 +63,7 @@ sendNeighbours(Paired, NSName) ->
 
 buildRing(State) ->
   [Clients|_] = dict:fetch(clients, State),
-  tools:log(?MYNAME, "~p: Baue Ring auf mit ~p.\n", [werkzeug:timeMilliSecond(), Clients]),
+  tools:log(?MYNAME, "~p: Baue Ring auf mit ~p Clients.\n", [werkzeug:timeMilliSecond(), length(Clients)]),
   [First | Rest1] = Clients,
   [Second | Rest] = Rest1,
   StateOne = {lists:last(Rest), Second},
