@@ -98,6 +98,7 @@ preProcess(State) ->
 %% Zustand Process
 process(State) ->
 [Name|_] =dict:fetch(name, State),
+  tools:log(Name, "~p: ~p Processstate by PID ~p\n", [werkzeug:timeMilliSecond(),Name, self()]),
   receive
     {?SEND, Y} ->
       tools:log(Name, "~p: ~p SEND ~p empfangen\n", [werkzeug:timeMilliSecond(),Name, Y]),
