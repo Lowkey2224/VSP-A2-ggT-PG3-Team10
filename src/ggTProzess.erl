@@ -58,7 +58,7 @@ calculate(State, Number) ->
   StateWithoutTimer = dict:erase(timer, State),
 % TODO Fehler hier
   Val = timer:cancel(Timer),
-  tools:log(Name, "~p: Timer ~p and cancel Result ~p\n", [werkzeug:timeMilliSecond(), Timer, Val]),
+%%   tools:log(Name, "~p: Timer ~p and cancel Result ~p\n", [werkzeug:timeMilliSecond(), Timer, Val]),
   timer:sleep(TTW),
   case Number < Mi of
     true ->
@@ -176,10 +176,9 @@ briefTermination(State) ->
 %% Diese Methode stimmt über die Terminierung ab
 vote(State, Name) ->
   [MyName|_] = dict:fetch(name, State),
-  case MyName == Name of
-    true ->
+  if MyName == Name ->
       terminate(State);
-    _Else ->
+    true ->
       Now = werkzeug:timeMilliSecond(),
       [Last|_] = dict:fetch(votetime, State),
       [TTT|_] = dict:fetch(ttt, State),
@@ -188,7 +187,10 @@ vote(State, Name) ->
         L = dict:fetch(left, State),
         [NS|_] = dict:fetch(nsname, State),
         PID = ourTools:lookupNamewithNameService(L,NS),
-        PID ! {?VOTE, Name}
+        tools:log(MyName, "~p: ~p sende ~p weiter\n", [werkzeug:timeMilliSecond(), MyName, ?VOTE]),
+        PID ! {?VOTE, Name};
+        true ->
+          tools:log(MyName, "~p: ~p sende ~p nicht weiter\n", [werkzeug:timeMilliSecond(), MyName, ?VOTE])
         end
 
   end
