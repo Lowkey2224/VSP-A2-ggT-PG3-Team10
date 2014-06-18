@@ -12,7 +12,7 @@
 -author("Marilena").
 
 %% API
--export([start/0, initiateVote/2]).
+-export([start/0, initiateVote/2, init/1]).
 -import(werkzeug, []).
 -include("constants.hrl").
 -include("messages.hrl").
@@ -33,11 +33,11 @@ start() ->
 
 %% Initialisierung
 init(State) ->
-  NS = dict:fetch(nsname, State),
+%%   NS = dict:fetch(nsname, State),
   Name = dict:fetch(name, State),
-  ourTools:registerWithNameService(Name, NS),
-  erlang:register(Name, self()),
-  registerWithKoordinator(State),
+%%   ourTools:registerWithNameService(Name, NS),
+%%   erlang:register(Name, self()),
+%%   registerWithKoordinator(State),
   receive
     {?NEIGHBOURS, L, R} ->
       NewState = dict:store(left, L,
@@ -91,6 +91,8 @@ preProcess(State) ->
       TmpState = dict:store(mi, Mi, State),
       NewState = dict:store(votetime, now(), TmpState),
       tools:log(Name, "~p: ~p ~p ~p empfangen\n", [werkzeug:timeMilliSecond(), Name, ?SETPMI, Mi]),
+      Parent = dict:fetch(parent, State),
+      Parent ! {giff_status, process_state},
       process(createTimer(NewState))
   end
 .
@@ -99,40 +101,30 @@ preProcess(State) ->
 process(State) ->
 %%   tools:log(foo, "~p: Processstate by PID ~p dict = ~p\n", [werkzeug:timeMilliSecond(),self(), State]),
   Name =dict:fetch(name, State),
+  Parent = dict:fetch(parent, State),
+
   receive
     {?SEND, Y} ->
       tools:log(Name, "~p: ~p SEND ~p empfangen\n", [werkzeug:timeMilliSecond(),Name, Y]),
+      Parent ! {giff_status, calc},
       TmpState = calculate(State, Y),
       NewState = dict:store(votetime, now(), TmpState),
       process(NewState);
     {?VOTE, Initiator} ->
       tools:log(Name, "~p: ~p VOTE von ~p empfangen\n", [werkzeug:timeMilliSecond(), Name, Initiator]),
-      process(vote(State, Initiator));
-    {?TELLMI, PID}->
-      Mi = dict:fetch(mi, State),
-      PID ! {?TELLMI_RES, Mi},
-      process(State);
-    {?WHATSON, PID} ->
-      NewState = computeWhatsOn(State, PID),
-      process(NewState);
-    {?KILL} ->
-      tools:log(Name, "~p: ~p Kill empfangen\n", [werkzeug:timeMilliSecond(), Name]),
-      terminate(State)
+      Parent ! {giff_status, voting},
+      process(vote(State, Initiator))
   end
 .
 %% TODO
-computeWhatsOn(State, PID) ->
-  PID,
-  error(not_implemented),
-  State.
 
 sendMi(State) ->
 %%   Name =dict:fetch(name, State),
   L = dict:fetch(left, State),
   R = dict:fetch(right, State),
-  Foo = dict:fetch(mi, State),
-  Mi = Foo,
+  Mi = dict:fetch(mi, State),
   NS = dict:fetch(nsname, State),
+  dict:fetch(parent, State) ! {giff_mi, Mi},
   LPID = ourTools:lookupNamewithNameService(L, NS),
 %%   tools:log(Name, "~p: looked up ~p and got ~p PID: ~p\n", [werkzeug:timeMilliSecond(), L, LPID, self()]),
   RPID = ourTools:lookupNamewithNameService(R, NS),
@@ -206,22 +198,6 @@ processForeignVote(State, Name) ->
 calcDiff(Last) ->
   timer:now_diff(now(),Last)/1000
   .
-
-terminate(State) ->
-  Name = dict:fetch(name, State),
-  tools:log(Name, "~p: ~p abmelden vom Namensservice.\n", [werkzeug:timeMilliSecond(), Name]),
-  Result = ourTools:unbindOnNameService(Name, dict:fetch(nsname, State)),
-  tools:log(Name, "~p: ~p beendet sich nach Antwort ~p von NS beim Abmelden.\n", [werkzeug:timeMilliSecond(), Name, Result])
-.
-
-registerWithKoordinator(State) ->
-  Koord = dict:fetch(koordinator, State),
-  NS = dict:fetch(nsname, State),
-  Name = dict:fetch(name, State),
-  PID = ourTools:lookupNamewithNameService(Koord,NS),
-  PID ! {?CHECKIN, Name},
-  State
-.
 
 initiateVote(Name, PID) ->
   tools:log(Name, "~p: ~p Starte ~p \n",[werkzeug:timeMilliSecond(), Name, ?VOTE]),
