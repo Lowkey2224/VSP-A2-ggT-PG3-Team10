@@ -14,14 +14,16 @@
 -include("constants.hrl").
 -include("messages.hrl").
 
+-define(NAMESERVICE, nameservice).
+
 %% API
 -export([registerWithNameService/2, lookupNamewithNameService/2, unbindOnNameService/2]).
 
 %% Name, Nameservice
-registerWithNameService(Name, Nameservice) ->
+registerWithNameService(Name, _) ->
 
 
-  PID = global:whereis_name(Nameservice),
+  PID = global:whereis_name(?NAMESERVICE),
   PID ! {self(), {?REBIND, Name, node()}},
   receive
     {?REBIND_RES, ok} ->
@@ -30,8 +32,8 @@ registerWithNameService(Name, Nameservice) ->
   end
   .
 %% Name, Nameservice
-lookupNamewithNameService(Name, Nameservice) ->
-PID = global:whereis_name(Nameservice),
+lookupNamewithNameService(Name, _) ->
+PID = global:whereis_name(?NAMESERVICE),
   PID ! {self(), {?LOOKUP, Name }},
   receiveLookupAnswer(Name)
 .
@@ -53,8 +55,8 @@ receiveLookupAnswer(_) ->
   .
 
 %% Name, Nameservice
-unbindOnNameService(Name, Nameservice) ->
-PID = global:whereis_name(Nameservice),
+unbindOnNameService(Name, _) ->
+PID = global:whereis_name(?NAMESERVICE),
   PID ! {self(), {?UNBIND, Name }},
   receive
     {nok} ->
