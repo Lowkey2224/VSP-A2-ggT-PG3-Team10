@@ -184,7 +184,7 @@ vote(State, Name) ->
 .
 
 processForeignVote(State, Name) ->
-  MyName = dict:fetch(name, State),
+%%   MyName = dict:fetch(name, State),
   Last = dict:fetch(votetime, State),
   TTT = dict:fetch(ttt, State),
   Diff = calcDiff(Last),
