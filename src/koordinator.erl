@@ -27,6 +27,7 @@ start() ->
   {ok, TimeToWait} = werkzeug:get_config_value(ttw, Config),
   {ok, TimeToTerminate} = werkzeug:get_config_value(ttt, Config),
   global:register_name(?MYNAME, self()),
+  net_adm:ping(Name),
 erlang:register(?MYNAME, self()),
 %%   NSPID = global:whereis_name(Name),
 %   tools:log(?MYNAME, "Nameservicepid = ~p, fuer ~p \n",[NSPID, Name]),

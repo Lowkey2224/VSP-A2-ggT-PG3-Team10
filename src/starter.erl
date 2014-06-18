@@ -25,6 +25,7 @@ start() ->
 
   {ok, Config} = file:consult("ggt.cfg"),
   {ok, NS} = werkzeug:get_config_value(nameservicename, Config),
+  net_adm:ping(NS),
   {ok, Koordinator_name} = werkzeug:get_config_value(koordinatorname, Config),
   {ok, Praktikumsgruppe} = werkzeug:get_config_value(nr_praktikumsgruppe, Config),
   {ok, Teamnummer} = werkzeug:get_config_value(nr_team, Config),
