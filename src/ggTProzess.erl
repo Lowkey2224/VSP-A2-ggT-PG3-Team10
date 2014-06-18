@@ -116,6 +116,7 @@ process(State) ->
       NewState = computeWhatsOn(State, PID),
       process(NewState);
     {?KILL} ->
+      tools:log(Name, "~p: ~p Kill empfangen\n", [werkzeug:timeMilliSecond(), Name]),
       terminate(State)
   end
 .
@@ -208,8 +209,9 @@ calcDiff(Last) ->
 
 terminate(State) ->
   Name = dict:fetch(name, State),
-  ourTools:unbindOnNameService(Name, dict:fetch(nsname, State)),
-  tools:log(Name, "~p: ~p beendet sich.\n", [werkzeug:timeMilliSecond(), Name])
+  tools:log(Name, "~p: ~p abmelden vom Namensservice.\n", [werkzeug:timeMilliSecond(), Name]),
+  Result = ourTools:unbindOnNameService(Name, dict:fetch(nsname, State)),
+  tools:log(Name, "~p: ~p beendet sich nach Antwort ~p von NS beim Abmelden.\n", [werkzeug:timeMilliSecond(), Name, Result])
 .
 
 registerWithKoordinator(State) ->

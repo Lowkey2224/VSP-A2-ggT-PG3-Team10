@@ -60,6 +60,7 @@ unbind(Name, Pid, Service, Services) ->
     log_ns(Name, "unbinding service ~p:: successful", [Service]),
     NewServices = keydelete(Service, 1, Services),
     Pid ! {?UNBIND_RES, ServiceAtNode},
+    log_ns(Name, "sent ~p  to ~p", [{?UNBIND_RES, ServiceAtNode},Pid]),
     NewServices;
     true ->
       log_ns(Name, "unbinding service ~p:: not found in table", [Service]),

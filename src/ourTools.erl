@@ -27,7 +27,6 @@ registerWithNameService(Name, _) ->
   PID ! {self(), {?REBIND, Name, node()}},
   receive
     {?REBIND_RES, ok} ->
-%%       werkzeug:logging(list_to_atom(lists:concat([logfile,Name])), io_lib:format("Service ~p ist nun bekannt\n", [Name])),
       ok
   end
   .
@@ -58,11 +57,14 @@ receiveLookupAnswer(_) ->
 unbindOnNameService(Name, _) ->
 PID = global:whereis_name(?NAMESERVICE),
   PID ! {self(), {?UNBIND, Name }},
+  io:format(io_lib:format("Sende  Unbind fuer ~p\n", [Name])),
   receive
     {nok} ->
 %%       werkzeug:logging(list_to_atom(lists:concat([logfile,Name])), io_lib:format("Service ~s ist unbekannt\n", [Name])),
+      io:format(io_lib:format("Service nok bekommen fuer ~p\n", [Name])),
       {nok, ?UNDEFINED};
     {?UNBIND_RES, PID} ->
+      io:format(io_lib:format("Service ~p bekommen fuer ~p\n", [PID, Name])),
 %%       werkzeug:logging(list_to_atom(lists:concat([logfile,Name])), io_lib:format("Service ~s wurde entfernt in: ~p\n", [Name, PID])),
       PID
   end
