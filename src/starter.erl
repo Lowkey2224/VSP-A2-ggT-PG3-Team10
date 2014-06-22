@@ -69,7 +69,7 @@ startGGTProcesses(0, State) ->
   terminate(State);
 
 startGGTProcesses(NumberOfProcesses, State) ->
-  PID = erlang:spawn(fun() -> ggtDispatcher:start() end),
+  PID = erlang:spawn(ggtDispatcher, ggtDispatcher:start(), []),
   [TTW|_] = dict:fetch(ttw, State),
   [TTT|_] = dict:fetch(ttt, State),
   [Praktikumsgruppe|_] = dict:fetch(nr_praktikumsgr, State),

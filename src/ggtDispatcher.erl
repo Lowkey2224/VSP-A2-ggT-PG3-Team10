@@ -18,15 +18,15 @@
 
 start() ->
   receive
-    {TTW, TTT, Name, Nameservice, Koordinator} ->
-      State = dict:store(koordinator, Koordinator,
+  {TTW, TTT, Name, Nameservice, Koordinator} ->
+    tools:log(Name, "~p ggtProzess erfolgreich gestartet mit Namen: ~s\n", [werkzeug:timeMilliSecond(), Name]),
+    State = dict:store(koordinator, Koordinator,
         dict:store(nsname, Nameservice,
           dict:store(name, Name,
             dict:store(ttt, TTT,
               dict:store(ttw, TTW,
                 dict:store(parent, self(), dict:new())))))),
-      tools:log(Name, "~p ggtProzess erfolgreich gestartet mit Namen: ~s\n", [werkzeug:timeMilliSecond(), Name]),
-      Worker = spawn_link(ggTProzess, init, [State]),
+      Worker = spawn_link(ggTProzess, ggTProzess:init(), [State]),
       MyState = dict:store(koordinator, Koordinator,
         dict:store(nsname, Nameservice,
           dict:store(worker, Worker,

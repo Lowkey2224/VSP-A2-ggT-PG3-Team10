@@ -7,5 +7,6 @@ cc() ->
   c:c(tools),
   c:c(werkzeug),
   c:c(starter),
+  c:c(ggtDispatcher),
   c:c(ourTools)
 .
