@@ -27,7 +27,7 @@ start() ->
   {ok, NS} = werkzeug:get_config_value(nameservicename, Config),
   pong = net_adm:ping(NS),
   timer:sleep(1000), %%Add a sleep because ping seems to work too slow.
-%%   global:whereis_name(nameservice),
+  global:whereis_name(nameservice),
   {ok, Koordinator_name} = werkzeug:get_config_value(koordinatorname, Config),
   {ok, Praktikumsgruppe} = werkzeug:get_config_value(nr_praktikumsgruppe, Config),
   {ok, Teamnummer} = werkzeug:get_config_value(nr_team, Config),

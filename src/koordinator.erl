@@ -26,14 +26,24 @@ start() ->
   {ok, GgtPerStarter} = werkzeug:get_config_value(ggt_per_starter, Config),
   {ok, TimeToWait} = werkzeug:get_config_value(ttw, Config),
   {ok, TimeToTerminate} = werkzeug:get_config_value(ttt, Config),
-  global:register_name(?MYNAME, self()),
+  Known = global:whereis_name(?MYNAME),
+   tools:log(?MYNAME, "registered ~p \n",[Known]),
+
+  if Known == undefined->
+    io:format(io_lib:format("Muss neu registrieren\n", [])),
+    erlang:register(?MYNAME, self()),
+    global:register_name(?MYNAME, self());
+    true ->
+      io:format(io_lib:format("Alles cool\n", []))
+  end,
+
   net_adm:ping(Name),
   timer:sleep(1000),
 %%   global:whereis_name(nameservice),
-  erlang:register(?MYNAME, self()),
+
 %%   NSPID = global:whereis_name(Name),
 %   tools:log(?MYNAME, "Nameservicepid = ~p, fuer ~p \n",[NSPID, Name]),
-  MyDict = dict:new(),
+  MyDict = dict:store(result, 999999,dict:new()),
   State1 = dict:store(nsname, Name, MyDict),
   State2 = dict:store(rt, RegisterTime * 1000, State1),
   State3 = dict:store(ggt_per_starter, GgtPerStarter, State2),
@@ -159,11 +169,11 @@ insideReady(State) ->
     {?RESET} ->
       reset(State);
     {?PROMPT} ->
-      tell_mi(State);
+      insideReady(tell_mi(State));
     {?WHATSON} ->
-      whats_on(State);
+      insideReady(whats_on(State));
     {?TOGGLE} ->
-      State;
+      insideReady(toggle(State));
     {?KILL} ->
       tools:log(?MYNAME, "~p: ~p erhalten!\n", [werkzeug:timeMilliSecond(),?KILL]),
       killggTs(State),
@@ -171,6 +181,16 @@ insideReady(State) ->
     X -> tools:log(?MYNAME, "~p: Nachricht nicht vertanden! ~p\n", [werkzeug:timeMilliSecond(),X])
   end
   .
+
+toggle(State) ->
+  IsKEy = dict:is_key(toggle, State),
+  if IsKEy == false ->
+    tools:log(?MYNAME, "~p: Toggle Gesetzt\n", [werkzeug:timeMilliSecond()]),
+    dict:store(toggle, true, State);
+    true ->
+      tools:log(?MYNAME, "~p: Toggle entfernt\n", [werkzeug:timeMilliSecond()]),
+      dict:erase(toggle, State)
+  end.
 
 
 whats_on(State) ->
@@ -180,11 +200,12 @@ whats_on(State) ->
     PID ! {?WHATSON, self()},
     receive
       {?WHATSON_RES, GGTState} ->
-        tools:log(?MYNAME, "~p: ggtNode ~p meldet hat Zustand: ~p (abgefragt durch tell_mi)\n", [werkzeug:timeMilliSecond(), X, GGTState])
+        tools:log(?MYNAME, "~p: ggtNode ~p meldet hat Zustand: ~p (abgefragt durch ~p)\n", [werkzeug:timeMilliSecond(), X, GGTState, ?WHATSON])
     end
   end,
   Clients = dict:fetch(clients, State),
-  lists:map(Fun, Clients)
+  lists:map(Fun, Clients),
+State
 .
 
 tell_mi(State) ->
@@ -198,7 +219,8 @@ tell_mi(State) ->
     end
   end,
   Clients = dict:fetch(clients, State),
-  lists:map(Fun, Clients)
+  lists:map(Fun, Clients),
+  State
 .
 startChosenClients(_, [], _) ->
   ok;
@@ -251,6 +273,8 @@ initPhase(State) ->
     {step} ->
       tools:log(?MYNAME, "~p: Koordinator hat Step erhalten und baut den Ring auf\n", [werkzeug:timeMilliSecond()]),
       buildRing(State);
+    {reset} ->
+      reset(State);
      X -> tools:log(?MYNAME, "~p: Nachricht nicht vertanden! ~p\n", [werkzeug:timeMilliSecond(),X]),
        initPhase(State)
 
@@ -274,16 +298,36 @@ end,
 %% bearbeitet eine Terminierungsnachricht eines ggtProzesses
 computeGGTTermination(State, GgtName, Mi, Time, PID) ->
   tools:log(?MYNAME, "~p: ggtNode ~p  an ~p meldet terminierung mit Ergebnis: ~p\n", [Time, GgtName, PID, Mi]),
-  insideReady(killggTs(State))
+
+  IsKEy = dict:is_key(clients, State),
+  if IsKEy == false ->
+    insideReady(killggTs(State));
+    true ->
+      Res  = dict:fetch(result, State),
+      Ns = dict:fetch(nsname, State),
+      if Res < Mi ->
+        GGTPID = ourTools:lookupNamewithNameService(GgtName, Ns),
+        GGTPID ! {?SEND, Res},
+        insideReady(State);
+        true ->
+          insideReady(killggTs(State))
+      end
+  end
+
 .
 
 %% Informiert die ggtProzesse ueber die Terminierung des koordinatorss
 killggTs(State) ->
-  GgtList = dict:fetch(clients, State),
-  Ns = dict:fetch(nsname, State),
-  tools:log(?MYNAME, "~p: Sende Kill an alle GGT PRozesse\n~p\n", [werkzeug:timeMilliSecond(), GgtList]),
-  NewGGTList = stopAllGGTs(GgtList, Ns),
-  dict:store(clients, NewGGTList, State)
+  IsKEy = dict:is_key(clients, State),
+  if IsKEy == false ->
+    State;
+    true ->
+      GgtList = dict:fetch(clients, State),
+      Ns = dict:fetch(nsname, State),
+      tools:log(?MYNAME, "~p: Sende Kill an alle GGT PRozesse\n~p\n", [werkzeug:timeMilliSecond(), GgtList]),
+      NewGGTList = stopAllGGTs(GgtList, Ns),
+      dict:store(clients, NewGGTList, State)
+  end
 .
 
 terminate(State)->
@@ -292,7 +336,7 @@ terminate(State)->
 .
 
 reset(State) ->
-  ok = killggTs(State),
+  killggTs(State),
   start()
 .
 stopAllGGTs([], _) ->

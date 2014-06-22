@@ -25,7 +25,8 @@ start() ->
         dict:store(nsname, Nameservice,
           dict:store(name, Name,
             dict:store(ttt, TTT,
-              dict:store(ttw, TTW, dict:new()))))),
+              dict:store(ttw, TTW,
+                dict:store(terminateCount,0,dict:new())))))),
       tools:log(Name, "~p ggtProzess erfolgreich gestartet mit Namen: ~s und PID ~p\n", [werkzeug:timeMilliSecond(), Name, self()]),
       init(State)
   end
@@ -170,7 +171,12 @@ briefTermination(State) ->
 vote(State, Name) ->
   MyName = dict:fetch(name, State),
   if MyName == Name ->
-    briefTermination(State);
+
+    briefTermination(
+      dict:store(terminateCount, dict:fetch(terminateCount,State)+1, State)
+    ),
+    tools:log(MyName, "~p: ~p sende terminierung Nr. ~p \n", [werkzeug:timeMilliSecond(), MyName, dict:fetch(terminateCount,State)]);
+
     true ->
       processForeignVote(State,Name)
   end
