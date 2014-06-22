@@ -22,8 +22,9 @@
 %% Name, Nameservice
 registerWithNameService(Name, _) ->
 
-
+  io:format(io_lib:format("NS hat PID ~p\n", [huuuh])),
   PID = global:whereis_name(?NAMESERVICE),
+  io:format(io_lib:format("NS hat PID ~p\n", [PID])),
   PID ! {self(), {?REBIND, Name, node()}},
   receive
     {?REBIND_RES, ok} ->
