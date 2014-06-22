@@ -46,16 +46,21 @@ getConfigValues(State) ->
 %   werkzeug:logging(logfile, io_lib:format("Nameservice hat namen: ~p \n", [NS])),
   KoordinatorPID = ourTools:lookupNamewithNameService(Koordinator, NS),
 %   werkzeug:logging(logfile, io_lib:format("Nachricht and Koordinator geschickt: ~p \n", [?GGTVALS])),
+  io:format(io_lib:format("Frage nach ~p\n", [?GGTVALS])),
+
   KoordinatorPID ! {?GGTVALS, self()},
   receive
     {?GGTVALS_RES, TTW, TTT, GGTs} ->
+      io:format(io_lib:format("Antwort TTW ~p, TTT ~p, GGTs ~p \n", [TTW, TTT, GGTs])),
       State2 = dict:append(ttw, TTW, State),
       State3 = dict:append(ttt, TTT, State2),
       State4 = dict:append(ggts, GGTs, State3),
+      io:format(io_lib:format("Frage nach Starternummer\n", [])),
       KoordinatorPID ! {get_starter_number, self()},
       receive
         {starter_number, Number} ->
       State5 = dict:append(starter_number, Number, State4),
+          io:format(io_lib:format("Starternummer ~p erhalten \n", [Number])),
       startGGTProcesses(GGTs, State5);
 	Any ->
 	werkzeug:logging(logfile, io_lib:format("komische antwort: ~p \n", [Any]))
@@ -69,7 +74,8 @@ startGGTProcesses(0, State) ->
   terminate(State);
 
 startGGTProcesses(NumberOfProcesses, State) ->
-  PID = erlang:spawn(ggtDispatcher, ggtDispatcher:start(), []),
+  PID = erlang:spawn(fun() -> ggtDispatcher:start() end),
+%%   io:format(io_lib:format("Dispatcher Nr ~p gestartet mit PID ~p \n", [NumberOfProcesses, PID])),
   [TTW|_] = dict:fetch(ttw, State),
   [TTT|_] = dict:fetch(ttt, State),
   [Praktikumsgruppe|_] = dict:fetch(nr_praktikumsgr, State),
@@ -80,6 +86,7 @@ startGGTProcesses(NumberOfProcesses, State) ->
   [Koordinator|_] = dict:fetch(koordinatorname, State),
 
   PID ! {TTW, TTT, Startnummer, Nameservice, Koordinator},
+%%   io:format(io_lib:format("GGTVals an ggt Uebermittelt \n", [])),
   startGGTProcesses(NumberOfProcesses - 1, State)
 .
 

@@ -149,6 +149,7 @@ ready(State) ->
 .
 
 insideReady(State) ->
+%%   io:format(io_lib:format("Inside Ready\n", [])),
   receive
     {?BRIEFME, {GgtName, Mi, Time}} ->
       tools:log(?MYNAME, "~p: ggtNode ~p meldet neues Mi: ~p\n", [Time, GgtName, Mi]),
@@ -165,7 +166,8 @@ insideReady(State) ->
       State;
     {?KILL} ->
       tools:log(?MYNAME, "~p: ~p erhalten!\n", [werkzeug:timeMilliSecond(),?KILL]),
-      kill(State);
+      killggTs(State),
+      terminate(State);
     X -> tools:log(?MYNAME, "~p: Nachricht nicht vertanden! ~p\n", [werkzeug:timeMilliSecond(),X])
   end
   .
@@ -272,28 +274,32 @@ end,
 %% bearbeitet eine Terminierungsnachricht eines ggtProzesses
 computeGGTTermination(State, GgtName, Mi, Time, PID) ->
   tools:log(?MYNAME, "~p: ggtNode ~p  an ~p meldet terminierung mit Ergebnis: ~p\n", [Time, GgtName, PID, Mi]),
-  kill(State),
-  insideReady(State)
+  insideReady(killggTs(State))
 .
 
 %% Informiert die ggtProzesse ueber die Terminierung des koordinatorss
-kill(State) ->
+killggTs(State) ->
   GgtList = dict:fetch(clients, State),
   Ns = dict:fetch(nsname, State),
-  tools:log(?MYNAME, "~p: Sende Kill an alle GGT PRozesse\n", [werkzeug:timeMilliSecond()]),
-  stopAllGGTs(GgtList, Ns),
-  ourTools:unbindOnNameService(?MYNAME, Ns),
-  ok
+  tools:log(?MYNAME, "~p: Sende Kill an alle GGT PRozesse\n~p\n", [werkzeug:timeMilliSecond(), GgtList]),
+  NewGGTList = stopAllGGTs(GgtList, Ns),
+  dict:store(clients, NewGGTList, State)
+.
+
+terminate(State)->
+  Ns = dict:fetch(nsname, State),
+  ourTools:unbindOnNameService(?MYNAME, Ns)
 .
 
 reset(State) ->
-  ok = kill(State),
+  ok = killggTs(State),
   start()
 .
 stopAllGGTs([], _) ->
-  ok;
+  [];
 stopAllGGTs(Clients, NS) ->
   [Client | Rest] = Clients,
+  io:format(io_lib:format("Suche Client ~p\n", [Client])),
   Pid = ourTools:lookupNamewithNameService(Client, NS),
   tools:log(?MYNAME, "~p: Sende Kill an ~p \n", [werkzeug:timeMilliSecond(),Pid]),
   Pid ! {?KILL},

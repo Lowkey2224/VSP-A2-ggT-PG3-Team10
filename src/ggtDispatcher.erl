@@ -17,16 +17,17 @@
 
 
 start() ->
+
   receive
   {TTW, TTT, Name, Nameservice, Koordinator} ->
-    tools:log(Name, "~p ggtProzess erfolgreich gestartet mit Namen: ~s\n", [werkzeug:timeMilliSecond(), Name]),
+%%     tools:log(Name, "~p ggtProzess erfolgreich gestartet mit Namen: ~s\n ", [werkzeug:timeMilliSecond(), Name]),
     State = dict:store(koordinator, Koordinator,
         dict:store(nsname, Nameservice,
           dict:store(name, Name,
             dict:store(ttt, TTT,
               dict:store(ttw, TTW,
                 dict:store(parent, self(), dict:new())))))),
-      Worker = spawn_link(ggTProzess, ggTProzess:init(), [State]),
+      Worker = spawn_link(fun() -> ggTProzess:init(State) end),
       MyState = dict:store(koordinator, Koordinator,
         dict:store(nsname, Nameservice,
           dict:store(worker, Worker,
@@ -36,8 +37,8 @@ start() ->
 .
 
 init(State) ->
-  [NS|_] = dict:fetch(nsname, State),
-  [Name|_] = dict:fetch(name, State),
+  NS = dict:fetch(nsname, State),
+  Name = dict:fetch(name, State),
   ourTools:registerWithNameService(Name, NS),
   erlang:register(Name, self()),
   registerWithKoordinator(State),
@@ -52,6 +53,7 @@ init(State) ->
 preProcess(State) ->
   receive
     {?SETPMI, Mi} ->
+      dict:fetch(worker, State) ! {?SETPMI, Mi},
       process(dict:store(mi, Mi, State))
   end
 .
@@ -95,8 +97,8 @@ registerWithKoordinator(State) ->
 
 terminate(State) ->
   Name = dict:fetch(name, State),
-  tools:log(Name, "~p: ~p abmelden vom Namensservice.\n", [werkzeug:timeMilliSecond(), Name]),
+%%   tools:log(Name, "~p: ~p abmelden vom Namensservice.\n", [werkzeug:timeMilliSecond(), Name]),
   Result = ourTools:unbindOnNameService(Name, dict:fetch(nsname, State)),
-  tools:log(Name, "~p: ~p beendet sich nach Antwort ~p von NS beim Abmelden.\n", [werkzeug:timeMilliSecond(), Name, Result]),
+%%   tools:log(Name, "~p: ~p beendet sich nach Antwort ~p von NS beim Abmelden.\n", [werkzeug:timeMilliSecond(), Name, Result]),
   exit(dict:fetch(worker, State), kill)
 .
