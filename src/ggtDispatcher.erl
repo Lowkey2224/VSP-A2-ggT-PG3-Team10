@@ -98,7 +98,7 @@ registerWithKoordinator(State) ->
 terminate(State) ->
   Name = dict:fetch(name, State),
 %%   tools:log(Name, "~p: ~p abmelden vom Namensservice.\n", [werkzeug:timeMilliSecond(), Name]),
-  Result = ourTools:unbindOnNameService(Name, dict:fetch(nsname, State)),
+  ourTools:unbindOnNameService(Name, dict:fetch(nsname, State)),
 %%   tools:log(Name, "~p: ~p beendet sich nach Antwort ~p von NS beim Abmelden.\n", [werkzeug:timeMilliSecond(), Name, Result]),
   exit(dict:fetch(worker, State), kill),
   ok
