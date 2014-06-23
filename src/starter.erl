@@ -18,10 +18,10 @@
 
 
 %% API
--export([start/0]).
+-export([start/1]).
 
 
-start() ->
+start(Number) ->
 
   {ok, Config} = file:consult("ggt.cfg"),
   {ok, NS} = werkzeug:get_config_value(nameservicename, Config),
@@ -31,7 +31,7 @@ start() ->
   {ok, Koordinator_name} = werkzeug:get_config_value(koordinatorname, Config),
   {ok, Praktikumsgruppe} = werkzeug:get_config_value(nr_praktikumsgruppe, Config),
   {ok, Teamnummer} = werkzeug:get_config_value(nr_team, Config),
-  MyDict = dict:new(),
+  MyDict = dict:append(starter_number, Number,dict:new()),
   MyDict2 = dict:append(nameservice, NS, MyDict),
   MyDict3 = dict:append(koordinatorname, Koordinator_name, MyDict2),
   MyDict4 = dict:append(nr_praktikumsgr, Praktikumsgruppe, MyDict3),
@@ -55,19 +55,16 @@ getConfigValues(State) ->
       State2 = dict:append(ttw, TTW, State),
       State3 = dict:append(ttt, TTT, State2),
       State4 = dict:append(ggts, GGTs, State3),
-      io:format(io_lib:format("Frage nach Starternummer\n", [])),
-      KoordinatorPID ! {get_starter_number, self()},
-      receive
-        {starter_number, Number} ->
-      State5 = dict:append(starter_number, Number, State4),
-          io:format(io_lib:format("Starternummer ~p erhalten \n", [Number])),
-      startGGTProcesses(GGTs, State5);
-	Any ->
-	werkzeug:logging(logfile, io_lib:format("komische antwort: ~p \n", [Any]))
-  end
-
+%%       io:format(io_lib:format("Frage nach Starternummer\n", [])),
+%%       KoordinatorPID ! {get_starter_number, self()},
+%%       receive
+%%         {starter_number, Number} ->
+%%       State5 = dict:append(starter_number, Number, State4),
+%%           io:format(io_lib:format("Starternummer ~p erhalten \n", [Number])),
+      startGGTProcesses(GGTs, State4);
+	    Any ->
+	    werkzeug:logging(logfile, io_lib:format("komische antwort: ~p \n", [Any]))
 end
-
 .
 
 startGGTProcesses(0, State) ->
