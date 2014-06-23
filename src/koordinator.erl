@@ -15,7 +15,7 @@
 
 %% API
 -export([start/0]).
--define(MYNAME, koordinator310).
+-define(MYNAME, coordinator).
 
 
 start() ->
@@ -47,8 +47,8 @@ start() ->
   State1 = dict:store(nsname, Name, MyDict),
   State2 = dict:store(rt, RegisterTime * 1000, State1),
   State3 = dict:store(ggt_per_starter, GgtPerStarter, State2),
-  State4 = dict:store(ttw, TimeToWait * 1000, State3),
-  State5 = dict:store(ttt, TimeToTerminate * 1000, State4),
+  State4 = dict:store(ttw, TimeToWait, State3),
+  State5 = dict:store(ttt, TimeToTerminate, State4),
   State6 = dict:store(clients, [], State5),
   State = dict:store(startercount, 0, State6),
   init(State)
@@ -139,23 +139,29 @@ selectRandomClients(State, Clients, ChosenClients, NumberOfCalcs) ->
 
 
 ready(State) ->
+
+  receive
+    {?CALC, Target} ->
+      insideReady(startCalc(State, Target))
+  end,
+  ok
+.
+
+startCalc(State, Target) ->
   Clients = dict:fetch(clients, State),
   NSName = dict:fetch(nsname, State),
   ClientCount = length(Clients),
-  receive
-    {?CALC, Target} ->
-      tools:log(?MYNAME, "~p: Calc mit Target ~p erhalten \n", [werkzeug:timeMilliSecond(), Target]),
-      NewState = dict:store(target, Target, State),
-      setPMIs(Clients, werkzeug:bestimme_mis(Target, ClientCount), NSName),
-      tools:log(?MYNAME, "~p: Mis an die GGT Prozesse  verschickt.\n", [werkzeug:timeMilliSecond()]),
-      NumberOfCalcs = max(2, ClientCount * 0.15),
-      Chosen = selectRandomClients(NewState, Clients, [], NumberOfCalcs),
-      tools:log(?MYNAME, "~p: ~p zufaellige GGTs ausgewaehtl und eine Liste von Laenge ~p.\n", [werkzeug:timeMilliSecond(), NumberOfCalcs, length(Chosen)]),
-      startChosenClients(Target, Chosen, NSName),
-      tools:log(?MYNAME, "~p: Berechnung gestartet\n", [werkzeug:timeMilliSecond()]),
-      insideReady(NewState)
-  end,
-  ok
+  tools:log(?MYNAME, "~p: Calc mit Target ~p erhalten \n", [werkzeug:timeMilliSecond(), Target]),
+  NewState = dict:store(target, Target, State),
+  setPMIs(Clients, werkzeug:bestimme_mis(Target, ClientCount), NSName),
+  tools:log(?MYNAME, "~p: Mis an die GGT Prozesse  verschickt.\n", [werkzeug:timeMilliSecond()]),
+  NumberOfCalcs = max(2, ClientCount * 0.15),
+  Chosen = selectRandomClients(NewState, Clients, [], NumberOfCalcs),
+  tools:log(?MYNAME, "~p: ~p zufaellige GGTs ausgewaehtl und eine Liste von Laenge ~p.\n", [werkzeug:timeMilliSecond(), NumberOfCalcs, length(Chosen)]),
+  startChosenClients(Target, Chosen, NSName),
+  tools:log(?MYNAME, "~p: Berechnung gestartet\n", [werkzeug:timeMilliSecond()]),
+  NewState
+
 .
 
 insideReady(State) ->
@@ -179,7 +185,9 @@ insideReady(State) ->
       killggTs(State),
       terminate(State);
     X -> tools:log(?MYNAME, "~p: Nachricht nicht vertanden! ~p\n", [werkzeug:timeMilliSecond(),X]),
-      insideReady(State)
+      insideReady(State);
+    {?CALC, Target} ->
+      insideReady(startCalc(State, Target))
   end
   .
 
@@ -302,7 +310,8 @@ computeGGTTermination(State, GgtName, Mi, Time, PID) ->
 
   IsKEy = dict:is_key(clients, State),
   if IsKEy == false ->
-    insideReady(killggTs(State));
+    %insideReady(killggTs(State));
+    insideReady(State);
     true ->
       Res  = dict:fetch(result, State),
       Ns = dict:fetch(nsname, State),
@@ -311,7 +320,8 @@ computeGGTTermination(State, GgtName, Mi, Time, PID) ->
         GGTPID ! {?SEND, Res},
         insideReady(State);
         true ->
-          insideReady(killggTs(State))
+          %insideReady(killggTs(State))
+	  insideReady(State)
       end
   end
 
@@ -347,6 +357,6 @@ stopAllGGTs(Clients, NS) ->
   io:format(io_lib:format("Suche Client ~p\n", [Client])),
   Pid = ourTools:lookupNamewithNameService(Client, NS),
   tools:log(?MYNAME, "~p: Sende Kill an ~p \n", [werkzeug:timeMilliSecond(),Pid]),
-  Pid ! {?KILL},
+  Pid ! ?KILL,
   stopAllGGTs(Rest, NS)
 .
