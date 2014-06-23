@@ -178,7 +178,8 @@ insideReady(State) ->
       tools:log(?MYNAME, "~p: ~p erhalten!\n", [werkzeug:timeMilliSecond(),?KILL]),
       killggTs(State),
       terminate(State);
-    X -> tools:log(?MYNAME, "~p: Nachricht nicht vertanden! ~p\n", [werkzeug:timeMilliSecond(),X])
+    X -> tools:log(?MYNAME, "~p: Nachricht nicht vertanden! ~p\n", [werkzeug:timeMilliSecond(),X]),
+      insideReady(State)
   end
   .
 
