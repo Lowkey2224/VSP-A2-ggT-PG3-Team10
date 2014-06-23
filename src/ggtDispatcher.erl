@@ -76,7 +76,7 @@ process(State) ->
     {?WHATSON, PID} ->
       PID ! {?WHATSON_RES, dict:fetch(status, State)},
       process(State);
-    {?KILL} ->
+    ?KILL ->
       terminate(State);
 %%       Schnittstelle fuer den ggTProzess
     {giff_mi, Mi} ->
